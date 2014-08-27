@@ -1,0 +1,43 @@
+#+TITLE:       architecture.builder-protocol README
+#+AUTHOR:      Jan Moringen
+#+EMAIL:       jmoringe@techfak.uni-bielefeld.de
+#+DESCRIPTION: A protocol for flexible result construction.
+#+KEYWORDS:    common lisp, architecture, protocol, framework, builder, pattern, parsing
+#+LANGUAGE:    en
+
+* STARTED Introduction
+  In tasks such as parsing there is often a need to construct a result
+  representation of some kind, e.g. a parse tree. This system is
+  concerned with flexible construction of different result
+  representations while avoiding coupling between producers and
+  consumers of such results.
+
+  Staying with the parsing example, the result of a successful parse
+  is some sort of (abstract) syntax tree (AST). Most parsing code in
+  Common Lisp seems to do this in one of two ways: nested list
+  structures or a tree of (class or structure) instances. Both
+  approaches have advantages and disadvantages
+  + On the one hand, list-based parse results are well suited for
+    debugging since they pretty print nicely and unit tests since they
+    are =equal= comparable.
+  + On the other hand list-based results are not suitable for
+    CLOS-dispatch while instances are.
+  + Both kinds of results are well suited for AST processing using
+    pattern matching (e.g. with [[http://github.com/m2ym/optima][optima]]).
+  In practice, much parsing code seems to be written for one
+  particular consumer of the produced AST. This fact usually seems to
+  inform the choice of result representation.
+
+  This system employs the "builder" design pattern to enable a
+  flexible result representation with little effort for result
+  consumers and producers.
+* TODO Tutorial
+** TODO Implementing a Consumer of Results
+** TODO Implementing a Producer of Results
+** TODO The =list= builder
+* TODO Reference
+* TODO Related Work
+* Settings                                                         :noexport:
+
+#+OPTIONS: H:2 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
