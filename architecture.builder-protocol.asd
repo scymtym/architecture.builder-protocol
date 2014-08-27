@@ -47,4 +47,6 @@
                  :serial     t
                  :components ((:file       "package")
                               (:file       "variables")
-                              (:file       "protocol")))))
+                              (:file       "protocol")
+
+                              (:file       "list-builder")))))
