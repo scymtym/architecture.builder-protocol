@@ -8,13 +8,13 @@
 
 ;;; Builder protocol
 ;;;
-;;; This protocol allow producers such as parsers to construct object
-;;; trees in an abstract fashion, i.e. independent of the concrete
-;;; objects being constructing.
+;;; This protocol allows producers such as parsers to construct object
+;;; trees or graphs in an abstract fashion, i.e. independent of the
+;;; concrete objects being constructing.
 ;;;
 ;;; This is achieved through two parts of the protocol:
 ;;;
-;;; * Construction of nodes (objects?):
+;;; * Construction of nodes:
 ;;;
 ;;;   make-node builder kind &rest initargs             [generic function]
 ;;;
@@ -61,5 +61,8 @@
 (defmethod finish-node ((builder t) (kind t) (node t))
   node)
 
+;; This allows using nil to indicate that no relation should be in
+;; situations in which the call to `relate' would be inconvenient to
+;; avoid.
 (defmethod relate ((builder t) (relation t) (left t) (right null) &key)
   left)
