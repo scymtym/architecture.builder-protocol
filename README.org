@@ -31,6 +31,10 @@
   This system employs the "builder" design pattern to enable a
   flexible result representation with little effort for result
   consumers and producers.
+
+  #+ATTR_HTML: :alt "build status image" :title Build Status :align right
+  [[https://travis-ci.org/scymtym/architecture.builder-protocol][https://travis-ci.org/scymtym/architecture.builder-protocol.svg]]
+
 * STARTED Tutorial
   Since this is a probably a common case, we will use the construction
   of a simplistic AST from the output of an equally simplistic parser

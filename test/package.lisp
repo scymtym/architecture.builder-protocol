@@ -28,4 +28,6 @@
    system.")
 
 (defun run-tests ()
-  (run! :builder-protocol))
+  (let ((results (run :builder-protocol)))
+    (explain! results)
+    (results-status results)))
