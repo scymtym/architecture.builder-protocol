@@ -49,7 +49,8 @@
                               (:file       "variables")
                               (:file       "protocol")
 
-                              (:file       "list-builder"))))
+                              (:file       "list-builder")
+                              (:file       "top-down-forcing-builder"))))
   :in-order-to ((test-op (test-op :architecture.builder-protocol-test))))
 
 (defsystem :architecture.builder-protocol-test
@@ -65,7 +66,8 @@
                  :serial     t
                  :components ((:file       "package")
 
-                              (:file       "protocol")))))
+                              (:file       "protocol")
+                              (:file       "top-down-forcing-builder")))))
 
 (defmethod perform ((op        test-op)
                     (component (eql (find-system :architecture.builder-protocol-test))))

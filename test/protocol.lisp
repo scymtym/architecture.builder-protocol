@@ -8,54 +8,6 @@
 
 (in-suite :architecture.builder-protocol)
 
-;;; `mock-node' and `mock-builder'
-
-(defstruct (mock-node
-             (:constructor mock-node (kind &optional slots relations))
-             (:conc-name node-))
-  (kind      nil :type symbol :read-only t)
-  (slots     '() :type list)
-  (relations '() :type list))
-
-(defclass mock-builder () ())
-
-(defmethod make-node ((builder mock-builder) (kind t)
-                      &rest initargs)
-  (mock-node kind initargs))
-
-(defmethod relate ((builder  mock-builder)
-                   (relation t)
-                   (left     mock-node)
-                   (right    mock-node)
-                   &rest args)
-  (push (cons right args)
-        (cdr (or (assoc relation (node-relations left))
-                 (first (push (cons relation '())
-                              (node-relations left))))))
-  left)
-
-(defclass preparable-mock-builder (mock-builder)
-  ((prepared? :accessor builder-prepared?
-              :initform nil)))
-
-(defmethod prepare ((builder preparable-mock-builder))
-  (setf (builder-prepared? builder) t)
-  builder)
-
-(defmethod make-node ((builder preparable-mock-builder) (kind t)
-                      &rest initargs)
-  (apply #'call-next-method builder kind
-         (list* :prepared? (builder-prepared? builder) initargs)))
-
-(defclass finish-mock-builder (mock-builder) ())
-
-(defmethod finish ((builder finish-mock-builder) (result t))
-  (list :finish result))
-
-(defclass preparable-finish-mock-builder (preparable-mock-builder
-                                          finish-mock-builder)
-  ())
-
 ;;; Global processing tests
 
 (test prepare.smoke

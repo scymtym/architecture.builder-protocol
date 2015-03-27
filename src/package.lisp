@@ -30,6 +30,10 @@
    #:call-with-builder
    #:with-builder)
 
+  ;; `top-down-forcing-builder'
+  (:export
+   #:top-down-forcing-builder)
+
   (:documentation
    "This package contains the builder protocol.
 
