@@ -34,7 +34,54 @@
                               (node-relations left))))))
   left)
 
-;;; Tests
+(defclass preparable-mock-builder (mock-builder)
+  ((prepared? :accessor builder-prepared?
+              :initform nil)))
+
+(defmethod prepare ((builder preparable-mock-builder))
+  (setf (builder-prepared? builder) t)
+  builder)
+
+(defmethod make-node ((builder preparable-mock-builder) (kind t)
+                      &rest initargs)
+  (apply #'call-next-method builder kind
+         (list* :prepared? (builder-prepared? builder) initargs)))
+
+(defclass finish-mock-builder (mock-builder) ())
+
+(defmethod finish ((builder finish-mock-builder) (result t))
+  (list :finish result))
+
+;;; Global processing tests
+
+(test prepare.smoke
+  "Smoke test for the `prepare' generic function."
+
+  (let ((builder (prepare (make-instance 'preparable-mock-builder))))
+    (is (equalp (mock-node :foo '(:prepared? t))
+                (make-node builder :foo)))))
+
+(test finish.smoke
+  "Smoke test for the `finish' generic function."
+
+  (let ((builder (prepare (make-instance 'finish-mock-builder))))
+    (is (equalp `(:finish ,(mock-node :foo))
+                (finish builder (make-node builder :foo))))))
+
+(defun a-wrapper (builder)
+  (make-node builder :foo))
+
+(test wrap.smoke
+  "Smoke test for the `wrap' generic function."
+
+  (macrolet ((test-case (wrapper)
+               `(let ((builder (make-instance 'mock-builder)))
+                  (is (equalp (mock-node :foo)
+                              (wrap builder ,wrapper))))))
+    (test-case 'a-wrapper)
+    (test-case #'a-wrapper)))
+
+;;; Node construction tests
 
 (test make-node.smoke
   "Smoke test for the `make-node' generic function."

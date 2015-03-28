@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014 Jan Moringen
+;;;; Copyright (C) 2014, 2015 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -15,6 +15,10 @@
 
   ;; Builder protocol
   (:export
+   #:prepare
+   #:finish
+   #:wrap
+
    #:make-node
    #:finish-node
    #:relate
@@ -24,8 +28,12 @@
   (:documentation
    "This package contains the builder protocol.
 
-    The protocol consists of the generic functions `make-node',
-    `finish-node' and `relate' and the special variable `*builder*'.
+    The protocol consists of two groups of generic functions
+
+    1. `prepare', `finish' and `wrap'
+    2. `make-node', `finish-node' and `relate'
+
+    and the special variable `*builder*'.
 
     For construction of an object graph, a client binds `*builder*' to
     an object of the client's choice for which methods on the above
