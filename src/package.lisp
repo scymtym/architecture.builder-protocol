@@ -25,6 +25,11 @@
 
    #:make+finish-node)
 
+  ;; `with-builder' macro
+  (:export
+   #:call-with-builder
+   #:with-builder)
+
   (:documentation
    "This package contains the builder protocol.
 

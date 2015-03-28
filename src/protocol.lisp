@@ -97,10 +97,12 @@
 
 ;; No action, just call the function.
 (defmethod wrap ((builder t) (thunk function))
-  (funcall thunk builder))
+  (let ((*builder* builder))
+    (funcall thunk builder)))
 
 (defmethod wrap ((builder t) (thunk symbol))
-  (funcall thunk builder))
+  (let ((*builder* builder))
+    (funcall thunk builder)))
 
 ;; This allows consumers to omit defining a method on `finish-node'.
 (defmethod finish-node ((builder t) (kind t) (node t))
@@ -111,3 +113,42 @@
 ;; avoid.
 (defmethod relate ((builder t) (relation t) (left t) (right null) &key)
   left)
+
+;;; `with-builder'
+
+(defun call-with-builder (builder thunk)
+  (finish builder (wrap (prepare builder) thunk)))
+
+(defmacro with-builder (spec &body body)
+  "Execute BODY with a builder binding according to SPEC.
+
+   SPEC is either
+
+     (BUILDER-VAR BUILDER-FORM)
+
+       During the evaluation of BODY, BUILDER-VAR is bound to the
+       result of evaluating BUILDER-FORM.
+
+     (BUILDER-FORM)
+
+       Before the evaluation of BODY, BUILDER-FORM is evaluated, but
+       the constructed builder is only accessible through the
+       `*builder*' special variable.
+
+   Note that during the evaluation of BODY the special variable
+   `*builder*' is usually bound to the builder constructed by
+   BUILDER-FORM (depending on methods on `prepare' and `wrap')."
+  (destructuring-bind (builder-var-or-form
+                       &optional
+                       (builder-form nil builder-form-p))
+      (ensure-list spec)
+    (multiple-value-bind (builder-form builder-var var-p)
+        (if builder-form-p
+            (values builder-form builder-var-or-form t)
+            (values builder-var-or-form (gensym)))
+      (check-type builder-var symbol)
+      `(flet ((with-builder-thunk (,builder-var)
+                ,@(unless var-p `((declare (ignore ,builder-var))))
+                ,@body))
+         (declare (dynamic-extent #'with-builder-thunk))
+         (call-with-builder ,builder-form #'with-builder-thunk)))))

@@ -52,6 +52,10 @@
 (defmethod finish ((builder finish-mock-builder) (result t))
   (list :finish result))
 
+(defclass preparable-finish-mock-builder (preparable-mock-builder
+                                          finish-mock-builder)
+  ())
+
 ;;; Global processing tests
 
 (test prepare.smoke
@@ -101,3 +105,19 @@
     (is (equalp (mock-node :foo () `((:baz . ((,(mock-node :bar) . (:fez 2))))))
                 (relate builder :baz (mock-node :foo) (mock-node :bar)
                         :fez 2)))))
+
+(test with-builder.smoke.1
+  "Smoke test for first syntax of the `with-builder' macro."
+
+  (let ((result (with-builder ((make-instance
+                                'preparable-finish-mock-builder))
+                  (make-node *builder* :foo))))
+    (is (equalp `(:finish ,(mock-node :foo '(:prepared? t))) result))))
+
+(test with-builder.smoke.2
+  "Smoke test for second syntax of the `with-builder' macro."
+
+  (let ((result (with-builder (builder (make-instance
+                                        'preparable-finish-mock-builder))
+                  (make-node builder :foo))))
+    (is (equalp `(:finish ,(mock-node :foo '(:prepared? t))) result))))
