@@ -36,7 +36,8 @@
   (:documentation
    "Use BUILDER to perform finalization for NODE and return NODE."))
 
-(defgeneric relate (builder relation left right &rest args &key)
+(defgeneric relate (builder relation left right
+                    &rest args &key &allow-other-keys)
   (:documentation
    "Establish RELATION between nodes LEFT and RIGHT and return the
     resulting modified LEFT node (or an appropriate newly created
