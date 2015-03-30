@@ -40,7 +40,7 @@
 ;;;;             :name   "a-my-node-instance"
 ;;;;             :bounds (1 . 5))
 
-(cl:in-package #:builder-protocol)
+(cl:in-package #:architecture.builder-protocol)
 
 (defmethod make-node ((builder (eql 'list)) (kind t) &rest initargs &key)
   (list* kind '() initargs))

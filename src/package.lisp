@@ -4,7 +4,7 @@
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
-(cl:defpackage #:builder-protocol
+(cl:defpackage #:architecture.builder-protocol
   (:use
    #:cl
    #:alexandria)

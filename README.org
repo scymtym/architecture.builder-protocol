@@ -69,36 +69,40 @@
    #+begin_src lisp
      (defclass ast-builder () ())
 
-     (defmethod builder-protocol:make-node ((builder ast-builder)
-                                            (kind    (eql :literal))
-                                            &key value)
+     (defmethod architecture.builder-protocol:make-node
+         ((builder ast-builder)
+          (kind    (eql :literal))
+          &key value)
        (make-instance 'literal :value value))
 
-     (defmethod builder-protocol:make-node ((builder ast-builder)
-                                            (kind    (eql :operator))
-                                            &key)
+     (defmethod architecture.builder-protocol:make-node
+         ((builder ast-builder)
+          (kind    (eql :operator))
+          &key)
        (make-instance 'operator))
 
-     (defmethod builder-protocol:relate ((builder  ast-builder)
-                                         (relation (eql :operator-operand))
-                                         (left     operator)
-                                         (right    expression)
-                                         &key)
+     (defmethod architecture.builder-protocol:relate
+         ((builder  ast-builder)
+          (relation (eql :operator-operand))
+          (left     operator)
+          (right    expression)
+          &key)
        (alexandria:appendf (operator-operands left) (list right))
        left)
    #+end_src
    We can already use this without the corresponding parser:
    #+begin_src lisp
      (let* ((builder  (make-instance 'ast-builder))
-            (operands (list (builder-protocol:make+finish-node
+            (operands (list (architecture.builder-protocol:make+finish-node
                              builder :literal :value 5)
-                            (builder-protocol:make+finish-node
+                            (architecture.builder-protocol:make+finish-node
                              builder :literal :value 6)))
-            (operator (builder-protocol:make-node builder :operator)))
-       (builder-protocol:finish-node
+            (operator (architecture.builder-protocol:make-node builder :operator)))
+       (architecture.builder-protocol:finish-node
         builder :operator
         (reduce (lambda (l r)
-                  (builder-protocol:relate builder :operator-operand l r))
+                  (architecture.builder-protocol:relate
+                   builder :operator-operand l r))
                 operands :initial-value operator)))
    #+end_src
 ** STARTED Implementing a Producer of Results
@@ -126,7 +130,7 @@
                 (literal ()
                   (let ((start (stream-file-position stream))
                         (c     (read-char stream)))
-                    (builder-protocol:make-node
+                    (architecture.builder-protocol:make-node
                      builder :literal
                      :value  (parse-integer (string c))
                      :bounds (cons start (1+ start)))))
@@ -136,13 +140,13 @@
                         (operands (list (expression) (expression)))
                         (end      (stream-file-position stream)))
                     (declare (ignore c))
-                    (builder-protocol:finish-node
+                    (architecture.builder-protocol:finish-node
                      builder :operator
                      (reduce (lambda (l r)
-                               (builder-protocol:relate
+                               (architecture.builder-protocol:relate
                                 builder :operator-operand l r))
                              operands
-                             :initial-value (builder-protocol:make-node
+                             :initial-value (architecture.builder-protocol:make-node
                                              builder :operator
                                              :bounds (cons start end)))))))
          (expression)))

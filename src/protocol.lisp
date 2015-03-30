@@ -4,7 +4,7 @@
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
-(cl:in-package #:builder-protocol)
+(cl:in-package #:architecture.builder-protocol)
 
 ;;; Builder protocol
 ;;;

@@ -6,7 +6,7 @@
    #:cl
    #:alexandria
 
-   #:builder-protocol
+   #:architecture.builder-protocol
    #:esrap))
 
 (cl:in-package #:builder-protocol.example.esrap)

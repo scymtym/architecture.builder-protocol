@@ -21,4 +21,4 @@ script:
       -e '(load "quicklisp/setup.lisp")'
       -e '(ql:register-local-projects)'
       -e '(ql:quickload (list :architecture.builder-protocol :architecture.builder-protocol-test))'
-      '(or (builder-protocol.test:run-tests) (uiop:quit -1))'
+      '(or (architecture.builder-protocol.test:run-tests) (uiop:quit -1))'

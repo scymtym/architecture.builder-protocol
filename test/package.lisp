@@ -4,12 +4,12 @@
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
-(cl:defpackage #:builder-protocol.test
+(cl:defpackage #:architecture.builder-protocol.test
   (:use
    #:cl
    #:fiveam
 
-   #:builder-protocol)
+   #:architecture.builder-protocol)
 
   (:export
    #:run-tests)
@@ -18,16 +18,16 @@
    "This package contains unit tests for the
     architecture.builder-protocol system"))
 
-(cl:in-package #:builder-protocol.test)
+(cl:in-package #:architecture.builder-protocol.test)
 
 ;;; Root test suite and external interface
 
-(def-suite :builder-protocol
+(def-suite :architecture.builder-protocol
   :description
   "Root unit test suite for the architecture.builder-protocol
    system.")
 
 (defun run-tests ()
-  (let ((results (run :builder-protocol)))
+  (let ((results (run :architecture.builder-protocol)))
     (explain! results)
     (results-status results)))

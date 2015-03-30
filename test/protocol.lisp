@@ -4,9 +4,9 @@
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
-(cl:in-package #:builder-protocol.test)
+(cl:in-package #:architecture.builder-protocol.test)
 
-(in-suite :builder-protocol)
+(in-suite :architecture.builder-protocol)
 
 ;;; `mock-node' and `mock-builder'
 
