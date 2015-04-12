@@ -15,18 +15,21 @@
 
   ;; Builder protocol
   (:export
-   #:prepare          #:prepare*
-   #:finish           #:finish*
-   #:wrap             #:wrap*
+   #:prepare                    #:prepare*
+   #:finish                     #:finish*
+   #:wrap                       #:wrap*
 
-   #:make-node        #:make-node*
-   #:finish-node      #:finish-node*
-   #:relate           #:relate*
+   #:make-node                  #:make-node*
+   #:finish-node                #:finish-node*
+   #:relate                     #:relate*
 
-   #:make+finish-node #:make+finish-node*)
+   #:make+finish-node           #:make+finish-node*
+   #:make+finish-node+relations #:make+finish-node+relations*)
 
   ;; `with-builder' macro
   (:export
+   #:node                       #:node*
+
    #:call-with-builder
    #:with-builder)
 
@@ -49,6 +52,11 @@
     `prepare*', `finish*', `wrap*', `make-node*', `finish-node*' and
     `relate*' lack the builder argument and use the value of
     `*builder*' automatically.
+
+    Further convenience functions `make+finish-node[*]',
+    `make+finish-node+relation[*]' and macros `node[*]' combine common
+    idioms involving the above functions into a single function or
+    macro respectively.
 
     For construction of an object graph, a client binds
     `*builder*' (for example via `with-builder') to an object of the

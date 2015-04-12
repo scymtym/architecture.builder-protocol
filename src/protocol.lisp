@@ -78,13 +78,6 @@
     In a typical case, RELATION could be :child, LEFT being the parent
     node and RIGHT being the child node."))
 
-(defun make+finish-node (builder kind &rest initargs
-                         &key bounds &allow-other-keys)
-  "Convenience function for constructing and immediately finishing a
-   node."
-  (declare (ignore bounds))
-  (finish-node builder kind (apply #'make-node builder kind initargs)))
-
 ;; Default behavior
 
 ;; No preparation.
@@ -114,6 +107,67 @@
 (defmethod relate ((builder t) (relation t) (left t) (right null) &key)
   left)
 
+;;; Convenience functions
+
+(defun make+finish-node (builder kind &rest initargs
+                         &key bounds &allow-other-keys)
+  "Convenience function for constructing and immediately finishing a
+   node."
+  (declare (ignore bounds))
+  (finish-node builder kind (apply #'make-node builder kind initargs)))
+
+(defun make+finish-node+relations (builder kind initargs relations)
+  "Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
+
+   RELATIONS is a list of relation specifications of the form
+
+     ((1 | *) RELATION-KIND RIGHT &rest ARGS)
+
+   which are translated into `relate' calls in which the created node
+   is the \"left\" argument to `relate'.
+
+   `finish-node' is called on the created node. The created node is
+   returned."
+  (labels ((add-relation/one (left relation right args)
+             (apply #'relate builder relation left right args))
+           (add-relation/sequence (left relation right args)
+             (reduce (lambda (left right)
+                       (apply #'relate builder relation left right args))
+                     right :initial-value left))
+           (add-relations (left relations)
+             (reduce (lambda (left spec)
+                       (destructuring-bind (arity relation right &rest args) spec
+                         (ecase arity
+                           (1 (add-relation/one left relation right args))
+                           (* (add-relation/sequence left relation right args)))))
+                     relations :initial-value left)))
+    (finish-node
+     builder kind
+     (add-relations (apply #'make-node builder kind initargs) relations))))
+
+(defmacro node ((builder kind &rest initargs &key &allow-other-keys)
+                &body relations)
+  "Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
+
+   BUILDER, KIND and INITARGS are evaluated and passed to `make-node'.
+
+   RELATIONS is a list of relation specifications of the form accepted
+   by `make+finish-node+relations'.
+
+   `finish-node' is called on the created node. The created node is
+   returned.
+
+   Example:
+
+     (node (:operator :which '+)
+       (* :operand (list left right)))"
+  (flet ((wrap-in-list (spec)
+           (destructuring-bind (arity relation right &rest args) spec
+             `(list ',arity ,relation ,right ,@args))))
+    `(make+finish-node+relations
+      ,builder ,kind (list ,@initargs)
+      (list ,@(mapcar #'wrap-in-list relations)))))
+
 ;;; Abbreviated versions
 
 (macrolet ((define-abbreviation (name (&rest args))
@@ -140,7 +194,14 @@
                                &rest args &key &allow-other-keys))
 
   (define-abbreviation make+finish-node (node &rest initargs
-                                         &key &allow-other-keys)))
+                                         &key &allow-other-keys))
+  (define-abbreviation make+finish-node+relations (kind initargs relations)))
+
+(defmacro node* ((kind &rest initargs &key &allow-other-keys) &body relations)
+  "Like `node' but uses `*builder*' instead of accepting a builder
+   parameter."
+  `(node (*builder* ,kind ,@initargs)
+     ,@relations))
 
 ;;; `with-builder'
 
