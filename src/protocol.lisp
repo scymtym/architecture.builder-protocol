@@ -114,6 +114,34 @@
 (defmethod relate ((builder t) (relation t) (left t) (right null) &key)
   left)
 
+;;; Abbreviated versions
+
+(macrolet ((define-abbreviation (name (&rest args))
+             (let* ((name* (symbolicate name '#:*))
+                    (&rest (position '&rest args))
+                    (args1 (subseq args 0 &rest))
+                    (rest  (when &rest (nth (1+ &rest) args))))
+               `(defun ,name* ,args
+                  ,(format nil "Like `~(~A~)' but uses `*builder*' ~
+                                instead of accepting a builder ~
+                                parameter."
+                           name)
+                  ,(if rest
+                       `(apply #',name *builder* ,@args1 ,rest)
+                       `(,name *builder* ,@args1))))))
+  (define-abbreviation prepare ())
+  (define-abbreviation finish (result))
+  (define-abbreviation wrap (thunk))
+
+  (define-abbreviation make-node (kind &rest initargs
+                                  &key &allow-other-keys))
+  (define-abbreviation finish-node (kind node))
+  (define-abbreviation relate (relation left right
+                               &rest args &key &allow-other-keys))
+
+  (define-abbreviation make+finish-node (node &rest initargs
+                                         &key &allow-other-keys)))
+
 ;;; `with-builder'
 
 (defun call-with-builder (builder thunk)
