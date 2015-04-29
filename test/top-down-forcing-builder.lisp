@@ -8,7 +8,7 @@
 
 (in-suite :architecture.builder-protocol)
 
-(test top-down-forcing-builder.make-node
+(test top-down-forcing-builder.smoke
   "Smoke test for the `top-down-forcing-builder'."
 
   (let* ((builder1 (make-instance 'call-recording-mock-builder))
