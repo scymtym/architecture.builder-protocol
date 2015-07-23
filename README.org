@@ -8,8 +8,8 @@
 * STARTED Introduction
   In tasks such as parsing there is often a need to construct a result
   representation of some kind, e.g. a parse tree. This system is
-  concerned with flexible construction of different result
-  representations while avoiding coupling between producers and
+  concerned with flexible construction and processing of different
+  result representations while avoiding coupling between producers and
   consumers of such results.
 
   Staying with the parsing example, the result of a successful parse
@@ -29,190 +29,194 @@
   inform the choice of result representation.
 
   This system employs the "builder" design pattern to enable a
-  flexible result representation with little effort for result
-  consumers and producers.
+  flexible result representation with little effort for consumers and
+  producers. A "builder protocol" is concerned with the construction
+  of results while a "un-builder protocol" is concerned with
+  destructuring and traversing the constructed representations.
 
   #+ATTR_HTML: :alt "build status image" :title Build Status :align right
   [[https://travis-ci.org/scymtym/architecture.builder-protocol][https://travis-ci.org/scymtym/architecture.builder-protocol.svg]]
 
 * STARTED Tutorial
-  Since this is a probably a common case, we will use the construction
-  of a simplistic AST from the output of an equally simplistic parser
-  as an example.
+** STARTED Build Protocol
+   Since this is a probably a common case, we will use the construction
+   of a simplistic AST from the output of an equally simplistic parser
+   as an example.
 
-  The example code in the following sections can be loaded into the
-  =cl-user= package and assumes that the =alexandria= system is
-  loaded.
-** STARTED Implementing a Consumer of Results
-   The nodes of the AST we want to construct are either literals or
-   operator applications with two operands and are both expressions:
-   #+begin_src lisp
-     (defclass expression () ())
-
-     (defclass literal (expression)
-       ((value :initarg :value :reader literal-value)))
-
-     (defclass operator (expression)
-       ((operands :accessor operator-operands :initform '())))
-   #+end_src
-   Note that the =value= slot of the =literal= is initialized using
-   the =:value= initarg while the =operands= slot of the =operator=
-   class is initialized to the empty lists but allows for later
-   mutation via =(setf operator-operands)=. The rationale is that
-   =literal= instances can be constructed in one =make-instance= call
-   while =operator= instance may be constructed before their operand
-   nodes, thus requiring mutation to attach these operand nodes once
-   they have been constructed.
-
-   A simple implementation of the builder protocol for these nodes
-   looks like this:
-   #+begin_src lisp
-     (defclass ast-builder () ())
-
-     (defmethod architecture.builder-protocol:make-node
-         ((builder ast-builder)
-          (kind    (eql :literal))
-          &key value)
-       (make-instance 'literal :value value))
-
-     (defmethod architecture.builder-protocol:make-node
-         ((builder ast-builder)
-          (kind    (eql :operator))
-          &key)
-       (make-instance 'operator))
-
-     (defmethod architecture.builder-protocol:relate
-         ((builder  ast-builder)
-          (relation (eql :operator-operand))
-          (left     operator)
-          (right    expression)
-          &key)
-       (alexandria:appendf (operator-operands left) (list right))
-       left)
-   #+end_src
-   We can already use this without the corresponding parser:
-   #+begin_src lisp
-     (let* ((builder  (make-instance 'ast-builder))
-            (operands (list (architecture.builder-protocol:make+finish-node
-                             builder :literal :value 5)
-                            (architecture.builder-protocol:make+finish-node
-                             builder :literal :value 6)))
-            (operator (architecture.builder-protocol:make-node builder :operator)))
-       (architecture.builder-protocol:finish-node
-        builder :operator
-        (reduce (lambda (l r)
-                  (architecture.builder-protocol:relate
-                   builder :operator-operand l r))
-                operands :initial-value operator)))
-   #+end_src
-** STARTED Implementing a Producer of Results
-   We will use a parser for a very simple expressions in polish
-   notation:
-   #+begin_example
-   EXPRESSION ::= OPERATOR | LITERAL
-   LITERAL    ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-   OPERATOR   ::= '+' EXPRESSION EXPRESSION
-   #+end_example
-   The parser is straightforward: it has a local function for each
-   element of the grammar and uses the builder protocol like in the
-   previous example. Since we now parse an actual source text, source
-   locations of constructed result nodes can be recorded using the
-   =:bounds= initarg.
-   #+begin_src lisp
-     (defun parse (stream builder)
-       (labels ((expression ()
-                  (let ((c (peek-char nil stream)))
-                    (cond
-                      ((char= c #\+)
-                       (operator))
-                      ((digit-char-p c)
-                       (literal)))))
-                (literal ()
-                  (let ((start (stream-file-position stream))
-                        (c     (read-char stream)))
-                    (architecture.builder-protocol:make-node
-                     builder :literal
-                     :value  (parse-integer (string c))
-                     :bounds (cons start (1+ start)))))
-                (operator ()
-                  (let ((start    (stream-file-position stream))
-                        (c        (read-char stream))
-                        (operands (list (expression) (expression)))
-                        (end      (stream-file-position stream)))
-                    (declare (ignore c))
-                    (architecture.builder-protocol:finish-node
-                     builder :operator
-                     (reduce (lambda (l r)
-                               (architecture.builder-protocol:relate
-                                builder :operator-operand l r))
-                             operands
-                             :initial-value (architecture.builder-protocol:make-node
-                                             builder :operator
-                                             :bounds (cons start end)))))))
-         (expression)))
-   #+end_src
-** STARTED The =list= Builder
-   When developing or testing result producers like parsers, it can be
-   convenient to produce a list-based result since it pretty-prints
-   nicely without any extra effort and can be =equal=-compared in unit
-   tests without depending on a more heavyweight representation such
-   as instances of AST node classes.
-
-   For these cases, the =architecture.builder-protocol= system
-   provides a builtin =list= builder:
-   #+begin_src lisp
-     (parse (make-string-input-stream "++123") 'list)
-     => (:OPERATOR
-         (:OPERATOR-OPERAND
-          ((:OPERATOR
-            (:OPERATOR-OPERAND
-             ((:LITERAL NIL :VALUE 1 :BOUNDS (2 . 3))
-              (:LITERAL NIL :VALUE 2 :BOUNDS (3 . 4))))
-            :BOUNDS (1 . 4))
-           (:LITERAL NIL :VALUE 3 :BOUNDS (4 . 5))))
-         :BOUNDS (0 . 5))
-   #+end_src
-*** STARTED Printing =list= Builder Results
-    This may be slightly off-topic, but a nice hack for printing
-    /arbitrary/ results produced by the =list= builder can be done
-    using the [[http://github.com/scymtym/utilities.print-tree][=utilities.print-tree= system]]:
+   The example code in the following sections can be loaded into the
+   =cl-user= package and assumes that the =alexandria= system is
+   loaded.
+*** Implementing a Consumer of Results
+    The nodes of the AST we want to construct are either literals or
+    operator applications with two operands and are both expressions:
     #+begin_src lisp
-      (defun print-tree (tree &optional (stream *standard-output*))
-        (utilities.print-tree:print-tree
-         stream tree
-         (utilities.print-tree:make-node-printer
-          (lambda (stream depth node)
-            (declare (ignore depth))
-            (destructuring-bind (kind relations &rest slots) node
-              (declare (ignore relations))
-              (format stream "~A~@[ @~A~]"
-                      kind (getf slots :bounds))
-              (alexandria:remove-from-plist slots :bounds)))
-          (lambda (stream depth node)
-            (declare (ignore depth))
-            (destructuring-bind (kind relations &rest slots) node
-              (declare (ignore kind relations))
-              (format stream "~{~A: ~A~^~@:_~}"
-                      (alexandria:remove-from-plist slots :bounds))))
-          (lambda (node)
-            (loop :for (relation nodes) :on (second node) :by #'cddr
-               :appending nodes)))))
+      (defclass expression () ())
+
+      (defclass literal (expression)
+                ((value :initarg :value :reader literal-value)))
+
+      (defclass operator (expression)
+                ((operands :accessor operator-operands :initform '())))
     #+end_src
-    Putting these pieces together, we can achieve the following:
+    Note that the =value= slot of the =literal= is initialized using
+    the =:value= initarg while the =operands= slot of the =operator=
+    class is initialized to the empty lists but allows for later
+    mutation via =(setf operator-operands)=. The rationale is that
+    =literal= instances can be constructed in one =make-instance= call
+    while =operator= instance may be constructed before their operand
+    nodes, thus requiring mutation to attach these operand nodes once
+    they have been constructed.
+
+    A simple implementation of the builder protocol for these nodes
+    looks like this:
     #+begin_src lisp
-      (print-tree (parse (make-string-input-stream "++123") 'list))
-      ; OPERATOR @(0 . 5)
-      ; ├─OPERATOR @(1 . 4)
-      ; │ ├─LITERAL @(2 . 3)
-      ; │ │   VALUE: 1
-      ; │ └─LITERAL @(3 . 4)
-      ; │     VALUE: 2
-      ; └─LITERAL @(4 . 5)
-      ;     VALUE: 3
+      (defclass ast-builder () ())
+
+      (defmethod architecture.builder-protocol:make-node
+          ((builder ast-builder)
+           (kind    (eql :literal))
+           &key value)
+                (make-instance 'literal :value value))
+
+      (defmethod architecture.builder-protocol:make-node
+          ((builder ast-builder)
+           (kind    (eql :operator))
+           &key)
+                (make-instance 'operator))
+
+      (defmethod architecture.builder-protocol:relate
+          ((builder  ast-builder)
+           (relation (eql :operator-operand))
+           (left     operator)
+           (right    expression)
+           &key)
+                (alexandria:appendf (operator-operands left) (list right))
+                left)
+    #+end_src
+    We can already use this without the corresponding parser:
+    #+begin_src lisp
+      (let* ((builder  (make-instance 'ast-builder))
+             (operands (list (architecture.builder-protocol:make+finish-node
+                              builder :literal :value 5)
+                             (architecture.builder-protocol:make+finish-node
+                              builder :literal :value 6)))
+             (operator (architecture.builder-protocol:make-node builder :operator)))
+                (architecture.builder-protocol:finish-node
+         builder :operator
+         (reduce (lambda (l r)
+                   (architecture.builder-protocol:relate
+                    builder :operator-operand l r))
+                 operands :initial-value operator)))
+    #+end_src
+*** Implementing a Producer of Results
+    We will use a parser for a very simple expressions in polish
+    notation:
+    #+begin_example
+    EXPRESSION ::= OPERATOR | LITERAL
+    LITERAL    ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+    OPERATOR   ::= '+' EXPRESSION EXPRESSION
+    #+end_example
+    The parser is straightforward: it has a local function for each
+    element of the grammar and uses the builder protocol like in the
+    previous example. Since we now parse an actual source text, source
+    locations of constructed result nodes can be recorded using the
+    =:bounds= initarg.
+    #+begin_src lisp
+      (defun parse (stream builder)
+                (labels ((expression ()
+                   (let ((c (peek-char nil stream)))
+                     (cond
+                       ((char= c #\+)
+                                (operator))
+                       ((digit-char-p c)
+                                (literal)))))
+                 (literal ()
+                   (let ((start (stream-file-position stream))
+                         (c     (read-char stream)))
+                     (architecture.builder-protocol:make-node
+                      builder :literal
+                      :value  (parse-integer (string c))
+                      :bounds (cons start (1+ start)))))
+                 (operator ()
+                   (let ((start    (stream-file-position stream))
+                         (c        (read-char stream))
+                         (operands (list (expression) (expression)))
+                         (end      (stream-file-position stream)))
+                     (declare (ignore c))
+                     (architecture.builder-protocol:finish-node
+                      builder :operator
+                      (reduce (lambda (l r)
+                                        (architecture.builder-protocol:relate
+                                 builder :operator-operand l r))
+                              operands
+                              :initial-value (architecture.builder-protocol:make-node
+                                              builder :operator
+                                              :bounds (cons start end)))))))
+          (expression)))
+    #+end_src
+*** The =list= Builder
+    When developing or testing result producers like parsers, it can be
+    convenient to produce a list-based result since it pretty-prints
+    nicely without any extra effort and can be =equal=-compared in unit
+    tests without depending on a more heavyweight representation such
+    as instances of AST node classes.
+
+    For these cases, the =architecture.builder-protocol= system
+    provides a builtin =list= builder:
+    #+begin_src lisp
+      (parse (make-string-input-stream "++123") 'list)
+      => (:OPERATOR
+          (:OPERATOR-OPERAND
+           ((:OPERATOR
+             (:OPERATOR-OPERAND
+              ((:LITERAL NIL :VALUE 1 :BOUNDS (2 . 3))
+               (:LITERAL NIL :VALUE 2 :BOUNDS (3 . 4))))
+             :BOUNDS (1 . 4))
+            (:LITERAL NIL :VALUE 3 :BOUNDS (4 . 5))))
+          :BOUNDS (0 . 5))
+    #+end_src
+**** Printing =list= Builder Results
+     This may be slightly off-topic, but a nice hack for printing
+     /arbitrary/ results produced by the =list= builder can be done
+     using the [[http://github.com/scymtym/utilities.print-tree][=utilities.print-tree= system]]:
+     #+begin_src lisp
+       (defun print-tree (tree &optional (stream *standard-output*))
+         (utilities.print-tree:print-tree
+          stream tree
+          (utilities.print-tree:make-node-printer
+           (lambda (stream depth node)
+             (declare (ignore depth))
+             (destructuring-bind (kind relations &rest slots) node
+               (declare (ignore relations))
+               (format stream "~A~@[ @~A~]"
+                       kind (getf slots :bounds))
+               (alexandria:remove-from-plist slots :bounds)))
+           (lambda (stream depth node)
+             (declare (ignore depth))
+             (destructuring-bind (kind relations &rest slots) node
+               (declare (ignore kind relations))
+               (format stream "~{~A: ~A~^~@:_~}"
+                       (alexandria:remove-from-plist slots :bounds))))
+           (lambda (node)
+             (loop :for (relation nodes) :on (second node) :by #'cddr
+                        :appending nodes)))))
      #+end_src
+     Putting these pieces together, we can achieve the following:
+     #+begin_src lisp
+       (print-tree (parse (make-string-input-stream "++123") 'list))
+       ; OPERATOR @(0 . 5)
+       ; ├─OPERATOR @(1 . 4)
+       ; │ ├─LITERAL @(2 . 3)
+       ; │ │   VALUE: 1
+       ; │ └─LITERAL @(3 . 4)
+       ; │     VALUE: 2
+       ; └─LITERAL @(4 . 5)
+       ;     VALUE: 3
+      #+end_src
+** TODO "Un-build" Protocol
 * TODO Reference
 * TODO Related Work
 * Settings                                                         :noexport:
 
-#+OPTIONS: H:2 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS: H:3 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
 #+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc

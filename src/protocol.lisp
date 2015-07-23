@@ -20,7 +20,7 @@
    See `relate' for \"left\" and \"right\" node roles."
   '(member ? 1 *))
 
-;;; Builder protocol
+;;; Build protocol
 ;;;
 ;;; This protocol allows producers such as parsers to construct object
 ;;; trees or graphs in an abstract fashion, i.e. independent of the
@@ -199,3 +199,83 @@
   (define-abbreviation make+finish-node (node &rest initargs
                                          &key &allow-other-keys))
   (define-abbreviation make+finish-node+relations (kind initargs relations)))
+
+;;; "Un-build" protocol
+;;;
+;;; This protocol allows nodes made by a given builder to be
+;;; decomposed back into the individual components from which they
+;;; were originally constructed. These components are:
+;;;
+;;; * node kind
+;;; * node initargs
+;;; * relations to other nodes
+;;;
+;;; The functions
+;;;
+;;;   node-kind builder node                            [generic function]
+;;;
+;;;   node-initargs builder node                        [generic function]
+;;;
+;;;   node-relations builder node                       [generic function]
+;;;
+;;;   node-relation builder relation node               [generic function]
+;;;
+;;; retrieve these components for NODE which must have been
+;;; constructed by BUILDER.
+
+(defgeneric node-kind (builder node)
+  (:documentation
+   "Return the kind of NODE w.r.t. BUILDER.
+
+    The return value is EQ to the KIND argument used to create NODE
+    with BUILDER."))
+
+(defgeneric node-initargs (builder node)
+  (:documentation
+   "Return a plist of initargs for NODE w.r.t. BUILDER.
+
+    The returned list is EQUAL to the list of keyword arguments pass
+    to the MAKE-NODE call that, using BUILDER, constructed NODE."))
+
+(defgeneric node-relations (builder node)
+  (:documentation
+   "Return a list of relations of NODE w.r.t. BUILDER.
+
+    Each relation is of one of the forms
+
+      RELATION-NAME
+      (RELATION-NAME . CARDINALITY)
+
+    where RELATION-NAME names the relation and CARDINALITY is of type
+    `relation-cardinality'. When the first form is used,
+    i.e. CARDINALITY is not present, it is assumed to be
+    `*'. CARDINALITY values are interpreted as follows:
+
+      ? -> The relation designated by RELATION-NAME with NODE as the
+           \"left\" node has zero or one \"right\" nodes.
+
+      1 -> The relation designated by RELATION-NAME with NODE as the
+           \"left\" node has exactly one \"right\" node.
+
+      * -> The relation designated by RELATION-NAME with NODE as the
+           \"left\" node has exactly zero or ore \"right\" nodes.
+
+    . This cardinality information is reflected by the return values
+    of (node-relation BUILDER RELATION-NAME NODE)."))
+
+(defgeneric node-relation (builder relation node)
+  (:documentation
+   "Return two values: 1) a list nodes related to NODE via RELATION
+    w.r.t. BUILDER 2) a same-length list of arguments of the relations.
+
+    Each element in the list of relation arguments is EQUAL to the
+    list of arguments passed to the RELATE call that, using BUILDER,
+    established the relation between NODE and the related node."))
+
+;; Default behavior
+
+(defmethod node-initargs ((builder t) (node t))
+  '())
+
+(defmethod node-relations ((builder t) (node t))
+  '())

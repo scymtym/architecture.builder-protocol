@@ -64,6 +64,24 @@
                               (mock-relations left))))))
   left)
 
+(defmethod node-kind ((builder mock-builder)
+                      (node    mock-node))
+  (mock-kind node))
+
+(defmethod node-initargs ((builder mock-builder)
+                          (node    mock-node))
+  (mock-slots node))
+
+(defmethod node-relations ((builder mock-builder)
+                           (node    mock-node))
+  (mapcar #'car (mock-relations node)))
+
+(defmethod node-relation ((builder  mock-builder)
+                          (relation t)
+                          (node     mock-node))
+  (when-let ((cell (cdr (assoc relation (mock-relations node)))))
+    (values (mapcar #'car cell) (mapcar #'cdr cell))))
+
 (defclass preparable-mock-builder (mock-builder)
   ((prepared? :accessor builder-prepared?
               :initform nil)))

@@ -18,7 +18,7 @@
   (:export
    #:*builder*)
 
-  ;; Builder protocol
+  ;; Build protocol
   (:export
    #:prepare                    #:prepare*
    #:finish                     #:finish*
@@ -38,14 +38,21 @@
    #:call-with-builder
    #:with-builder)
 
+  ;; "Un-build" protocol
+  (:export
+   #:node-kind
+   #:node-initargs
+   #:node-relations
+   #:node-relation)
+
   ;; `top-down-forcing-builder'
   (:export
    #:top-down-forcing-builder)
 
   (:documentation
-   "This package contains the builder protocol.
+   "This package contains the build and \"un-build\" protocols.
 
-    The protocol consists of two groups of generic functions
+    The build protocol consists of two groups of generic functions
 
     1. `prepare', `finish' and `wrap'
     2. `make-node', `finish-node' and `relate'

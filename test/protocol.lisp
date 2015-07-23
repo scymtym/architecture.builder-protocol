@@ -58,7 +58,7 @@
     (test-case 'a-wrapper)
     (test-case #'a-wrapper)))
 
-;;; Node construction tests
+;;; Build protocol tests
 
 (test make-node.smoke
   "Smoke test for the `make-node[*]' functions."
@@ -123,3 +123,39 @@
                            :finished? t)
                 (make+finish-node+relations
                  builder :foo '() `((* :fez (,(mock-node :baz)))))))))
+
+;;; Un-build protocol tests
+
+(test node-kind.smoke
+  "Smoke test for the `node-kind' function."
+
+  (let* ((builder (make-instance 'mock-builder))
+         (kind    :foo)
+         (node    (mock-node kind)))
+    (is (eq kind (node-kind builder node)))))
+
+(test node-initargs.smoke
+  "Smoke test for the `node-initargs' function."
+
+  (let* ((builder  (make-instance 'mock-builder))
+         (initargs '(:foo 1 :bar "2"))
+         (node     (mock-node :foo :slots initargs)))
+    (is (equal initargs (node-initargs builder node)))))
+
+(test node-relations.smoke
+  "Smoke test for the `node-relations' function."
+
+  (let* ((builder (make-instance 'mock-builder))
+         (node    (mock-node :foo
+                             :relations `((:bar . ((,(mock-node :baz))))))))
+    (is (equal '(:bar) (node-relations builder node)))))
+
+(test node-relation.smoke
+  "Smoke test for the `node-relation' function."
+
+  (let* ((builder (make-instance 'mock-builder))
+         (related (mock-node :baz))
+         (node    (mock-node :foo :relations `((:bar . ((,related)))))))
+    (is (equal `((,related) (()))
+               (multiple-value-list
+                (node-relation builder :bar node))))))
