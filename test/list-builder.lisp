@@ -42,11 +42,12 @@
          (node-1 (make-node builder :foo))
          (node-2 (make-node builder :bar)))
     (relate builder :baz node-1 node-2)
-    (is (equal `(:foo (:baz (,node-2))) node-1)))
+    (is (equal `(:foo (:baz ((,node-2 . ())))) node-1)))
 
   ;; With relation arguments.
   (let* ((builder 'list)
          (node-1 (make-node builder :foo))
          (node-2 (make-node builder :bar)))
     (relate builder :baz node-1 node-2 :arg 1)
-    (is (equal `(:foo (:baz (,node-2))) node-1))))
+    (is (equal `(:foo (:baz ((,node-2 . (:arg 1))))) node-1))))
+

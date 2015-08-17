@@ -1,6 +1,6 @@
 ;;;; list-builder.lisp --- Represents constructed results as nested lists.
 ;;;;
-;;;; Copyright (C) 2014 Jan Moringen
+;;;; Copyright (C) 2014, 2015 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -28,7 +28,10 @@
 ;;;;     the context.
 ;;;;
 ;;;;     TARGETS is a list of nodes that form elements of the
-;;;;     designated relation with the node in question.
+;;;;     designated relation with the node in question. Each entry is
+;;;;     of the form
+;;;;
+;;;;       (TARGET-NODE . RELATION-ARGUMENTS)
 ;;;;
 ;;;;   INITARGS is a plist of arbitrary properties associated to the
 ;;;;   node in question.
@@ -36,7 +39,7 @@
 ;;;; For example, a node of a hypothetical kind :my-node with a
 ;;;; hypothetical :child relation could look like this:
 ;;;;
-;;;;   (:my-node (:child ((:my-child () :bounds (3 . 4))))
+;;;;   (:my-node (:child (((:my-child () :bounds (3 . 4)) . ())))
 ;;;;             :name   "a-my-node-instance"
 ;;;;             :bounds (1 . 5))
 
@@ -48,8 +51,9 @@
 (defmethod finish-node ((builder (eql 'list)) (kind t) (node t))
   node)
 
-(defmethod relate ((builder (eql 'list)) (relation t) (left t) (right t) &key)
-  (appendf (getf (second left) relation) (list right))
+(defmethod relate ((builder (eql 'list)) (relation t) (left t) (right t)
+                   &rest args &key)
+  (appendf (getf (second left) relation) (list (cons right args)))
   left)
 
 (defmethod relate ((builder (eql 'list)) (relation t) (left t) (right null) &key)
