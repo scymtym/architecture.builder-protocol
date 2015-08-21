@@ -49,6 +49,11 @@
   (:export
    #:walk-nodes     #:walk-nodes*)
 
+  ;; Macros related to "un-build" protocol
+  (:export
+   #:call-with-unbuilder
+   #:with-unbuilder)
+
   ;; `top-down-forcing-builder'
   (:export
    #:top-down-forcing-builder)

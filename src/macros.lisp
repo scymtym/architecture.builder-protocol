@@ -46,7 +46,7 @@
       (ensure-list spec)
     (multiple-value-bind (builder-form builder-var var-p)
         (if builder-form-p
-            (values builder-form builder-var-or-form t)
+            (values builder-form        builder-var-or-form t)
             (values builder-var-or-form (gensym)))
       (check-type builder-var symbol)
       `(flet ((with-builder-thunk (,builder-var)
@@ -55,31 +55,53 @@
          (declare (dynamic-extent #'with-builder-thunk))
          ,(funcall make-call builder-form '#'with-builder-thunk)))))
 
+(defun %install-with-builder-docstring (macro &optional extra)
+  (setf (documentation macro 'function)
+        (format nil "Execute BODY with a builder binding according to ~
+                     SPEC.~@
+                     ~@
+                     SPEC is either~@
+                     ~@
+                     ~2@T(BUILDER-VAR BUILDER-FORM)~@
+                     ~@
+                     ~4@TDuring the evaluation of BODY, BUILDER-VAR is ~
+                     bound to~%~4@Tthe result of evaluating BUILDER-FORM.~@
+                     ~@
+                     ~2@T(BUILDER-FORM)~@
+                     ~@
+                     Before the evaluation of BODY, BUILDER-FORM is ~
+                     evaluated, but~%~4@Tthe constructed builder is ~
+                     only accessible through the~%~4@T`*builder*' ~
+                     special variable.~@[~2%~A~]"
+                extra)))
+
 ;;; `with-builder'
 
 (defun call-with-builder (builder thunk)
   (finish builder (wrap (prepare builder) thunk)))
 
 (defmacro with-builder (spec &body body)
-  "Execute BODY with a builder binding according to SPEC.
-
-   SPEC is either
-
-     (BUILDER-VAR BUILDER-FORM)
-
-       During the evaluation of BODY, BUILDER-VAR is bound to the
-       result of evaluating BUILDER-FORM.
-
-     (BUILDER-FORM)
-
-       Before the evaluation of BODY, BUILDER-FORM is evaluated, but
-       the constructed builder is only accessible through the
-       `*builder*' special variable.
-
-   Note that during the evaluation of BODY the special variable
-   `*builder*' is usually bound to the builder constructed by
-   BUILDER-FORM (depending on methods on `prepare' and `wrap')."
   (%expand-with-builder
    spec body
    (lambda (builder-form thunk-form)
      `(call-with-builder ,builder-form ,thunk-form))))
+
+(%install-with-builder-docstring
+ 'with-builder
+ "Note that during the evaluation of BODY the special variable
+  `*builder*' is usually bound to the builder constructed by
+  BUILDER-FORM (depending on methods on `prepare' and `wrap').")
+
+;;;; `with-unbuilder'
+
+(defun call-with-unbuilder (builder thunk)
+  (let ((*builder* builder))
+    (funcall thunk builder)))
+
+(defmacro with-unbuilder (spec &body body)
+  (%expand-with-builder
+   spec body
+   (lambda (builder-form thunk-form)
+     `(call-with-unbuilder ,builder-form ,thunk-form))))
+
+(%install-with-builder-docstring 'with-unbuilder)

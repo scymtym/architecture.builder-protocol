@@ -101,3 +101,19 @@
                            :finished? t)
                 (node* (:foo)
                   (? :bar (node* (:baz)) :fez 1))))))
+
+;;; `with-unbuilder'
+
+(test with-unbuilder.smoke.1
+  "Smoke for the first syntax of the `with-unbuilder' macro."
+
+  (let ((result (with-unbuilder ((make-instance 'mock-builder))
+                  (node-kind *builder* (mock-node :foo)))))
+    (is (eq :foo result))))
+
+(test with-unbuilder.smoke.2
+  "Smoke for the second syntax of the `with-unbuilder' macro."
+
+  (let ((result (with-unbuilder (builder (make-instance 'mock-builder))
+                  (node-kind builder (mock-node :foo)))))
+    (is (eq :foo result))))
