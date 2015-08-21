@@ -20,5 +20,10 @@ script:
       -S '(:source-registry (:directory "'$(pwd)'") :ignore-inherited-configuration)'
       -e '(load "quicklisp/setup.lisp")'
       -e '(ql:register-local-projects)'
-      -e '(ql:quickload (list :architecture.builder-protocol :architecture.builder-protocol-test))'
-      '(or (architecture.builder-protocol.test:run-tests) (uiop:quit -1))'
+      -e '(ql:quickload (list :architecture.builder-protocol
+                              :architecture.builder-protocol-test
+                              :architecture.builder-protocol.print-tree
+                              :architecture.builder-protocol.print-tree-test))'
+      '(or (and (architecture.builder-protocol.test:run-tests)
+                (architecture.builder-protocol.print-tree.test:run-tests))
+           (uiop:quit -1))'

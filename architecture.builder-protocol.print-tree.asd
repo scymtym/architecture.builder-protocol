@@ -1,10 +1,10 @@
-;;;; architecture.builder-protocol.asd --- System definition of architecture.builder-protocol system.
+;;;; architecture.builder-protocol-print-tree.asd --- System definition of architecture.builder-protocol-print-tree system.
 ;;;;
-;;;; Copyright (C) 2012, 2013, 2014, 2015 Jan Moringen
+;;;; Copyright (C) 2015 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
-(cl:defpackage #:architecture.builder-protocol-system
+(cl:defpackage #:architecture.builder-protocol.print-tree-system
   (:use
    #:cl
    #:asdf)
@@ -13,7 +13,7 @@
    #:version/list
    #:version/string))
 
-(cl:in-package #:architecture.builder-protocol-system)
+(cl:in-package #:architecture.builder-protocol.print-tree-system)
 
 ;;; Version stuff
 
@@ -36,46 +36,37 @@
 
 ;;; System definitions
 
-(defsystem :architecture.builder-protocol
+(defsystem :architecture.builder-protocol.print-tree
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     #.(version/string)
   :license     "LLGPLv3" ; see COPYING file for details
   :description "Protocol and framework for building parse results and other object graphs."
-  :depends-on  (:alexandria)
-  :components  ((:module     "src"
+  :depends-on  (:alexandria
+                :architecture.builder-protocol
+                :utilities.print-tree)
+  :components  ((:module     "print-tree"
+                 :pathname   "src/print-tree"
                  :serial     t
                  :components ((:file       "package")
+                              (:file       "print-tree"))))
+  :in-order-to ((test-op (test-op :architecture.builder-protocol.print-tree-test))))
 
-                              (:file       "util")
-                              (:file       "variables")
-                              (:file       "protocol")
-                              (:file       "macros")
-
-                              (:file       "list-builder")
-                              (:file       "top-down-forcing-builder"))))
-  :in-order-to ((test-op (test-op :architecture.builder-protocol-test))))
-
-(defsystem :architecture.builder-protocol-test
+(defsystem :architecture.builder-protocol.print-tree-test
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     #.(version/string)
   :license     "LLGPLv3" ; see COPYING file for details
-  :description "Unit tests of the architecture.builder-protocol system."
+  :description "Unit tests of the architecture.builder-protocol.print-tree system."
   :depends-on  (:alexandria
 
                 (:version :fiveam "1.1"))
   :components  ((:module     "test"
+                 :pathname   "test/print-tree"
                  :serial     t
                  :components ((:file       "package")
-
-                              (:file       "util")
-                              (:file       "protocol")
-                              (:file       "macros")
-
-                              (:file       "list-builder")
-                              (:file       "top-down-forcing-builder")))))
+                              (:file       "print-tree")))))
 
 (defmethod perform ((op        test-op)
-                    (component (eql (find-system :architecture.builder-protocol-test))))
-  (uiop:symbol-call '#:architecture.builder-protocol.test '#:run-tests))
+                    (component (eql (find-system :architecture.builder-protocol.print-tree-test))))
+  (uiop:symbol-call '#:architecture.builder-protocol.print-tree-test '#:run-tests))
