@@ -46,8 +46,10 @@
   :components  ((:module     "src"
                  :serial     t
                  :components ((:file       "package")
+
                               (:file       "variables")
                               (:file       "protocol")
+                              (:file       "macros")
 
                               (:file       "list-builder")
                               (:file       "top-down-forcing-builder"))))
@@ -67,6 +69,8 @@
                  :components ((:file       "package")
 
                               (:file       "protocol")
+                              (:file       "macros")
+
                               (:file       "top-down-forcing-builder")))))
 
 (defmethod perform ((op        test-op)

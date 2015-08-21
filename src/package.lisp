@@ -26,7 +26,7 @@
    #:make+finish-node           #:make+finish-node*
    #:make+finish-node+relations #:make+finish-node+relations*)
 
-  ;; `with-builder' macro
+  ;; Macros related to build protocol
   (:export
    #:node                       #:node*
 
