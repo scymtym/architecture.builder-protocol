@@ -40,14 +40,14 @@
 
   ;; "Un-build" protocol
   (:export
-   #:node-kind
-   #:node-initargs
-   #:node-relations
-   #:node-relation)
+   #:node-kind      #:node-kind*
+   #:node-initargs  #:node-initargs*
+   #:node-relations #:node-relations*
+   #:node-relation  #:node-relation*)
 
   ;; Node walking protocol
   (:export
-   #:walk-nodes)
+   #:walk-nodes     #:walk-nodes*)
 
   ;; `top-down-forcing-builder'
   (:export

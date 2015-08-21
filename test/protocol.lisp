@@ -127,43 +127,47 @@
 ;;; Un-build protocol tests
 
 (test node-kind.smoke
-  "Smoke test for the `node-kind' function."
+  "Smoke test for the `node-kind[*]' functions."
 
-  (let* ((builder (make-instance 'mock-builder))
-         (kind    :foo)
-         (node    (mock-node kind)))
-    (is (eq kind (node-kind builder node)))))
+  (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
+      node-kind
+    (let* ((kind    :foo)
+           (node    (mock-node kind)))
+      (is (eq kind (node-kind builder node))))))
 
 (test node-initargs.smoke
-  "Smoke test for the `node-initargs' function."
+  "Smoke test for the `node-initargs[*]' functions."
 
-  (let* ((builder  (make-instance 'mock-builder))
-         (initargs '(:foo 1 :bar "2"))
-         (node     (mock-node :foo :slots initargs)))
-    (is (equal initargs (node-initargs builder node)))))
+  (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
+      node-initargs
+    (let* ((initargs '(:foo 1 :bar "2"))
+           (node     (mock-node :foo :slots initargs)))
+      (is (equal initargs (node-initargs builder node))))))
 
 (test node-relations.smoke
-  "Smoke test for the `node-relations' function."
+  "Smoke test for the `node-relations[*]' functions."
 
-  (let* ((builder (make-instance 'mock-builder))
-         (node    (mock-node :foo
-                             :relations `((:bar . ((,(mock-node :baz))))))))
-    (is (equal '(:bar) (node-relations builder node)))))
+  (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
+      node-relations
+    (let ((node (mock-node
+                 :foo :relations `((:bar . ((,(mock-node :baz))))))))
+      (is (equal '(:bar) (node-relations builder node))))))
 
 (test node-relation.smoke
-  "Smoke test for the `node-relation' function."
+  "Smoke test for the `node-relation[*]' functions."
 
-  (let* ((builder (make-instance 'mock-builder))
-         (related (mock-node :baz))
-         (node    (mock-node :foo :relations `((:bar . ((,related)))))))
-    (is (equal `((,related) (()))
-               (multiple-value-list
-                (node-relation builder :bar node))))))
+  (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
+      node-relation
+    (let* ((related (mock-node :baz))
+           (node    (mock-node :foo :relations `((:bar . ((,related)))))))
+      (is (equal `((,related) (()))
+                 (multiple-value-list
+                  (node-relation builder :bar node)))))))
 
 ;;; Node walking protocol
 
 (test walk-nodes.smoke
-  "Smoke test for the `walk-nodes' function."
+  "Smoke test for the `walk-nodes[*]' functions."
 
   (flet ((make-recorder (cell)
            (lambda (recurse relation-args node kind relations &rest initargs)
@@ -173,10 +177,11 @@
     (mapc
      (lambda (case)
        (destructuring-bind (tree expected) case
-         (let ((builder (make-instance 'mock-builder))
-               (cell    (cons nil '())))
-           (walk-nodes builder (make-recorder cell) tree)
-           (is (equal expected (nreverse (cdr cell)))))))
+         (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
+             walk-nodes
+           (let ((cell (cons nil '())))
+             (walk-nodes builder (make-recorder cell) tree)
+             (is (equal expected (nreverse (cdr cell))))))))
 
      `(,(let ((node (mock-node :foo)))
           `(,node

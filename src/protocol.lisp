@@ -171,35 +171,6 @@
      builder kind
      (add-relations (apply #'make-node builder kind initargs) relations))))
 
-;;; Abbreviated versions
-
-(macrolet ((define-abbreviation (name (&rest args))
-             (let* ((name* (symbolicate name '#:*))
-                    (&rest (position '&rest args))
-                    (args1 (subseq args 0 &rest))
-                    (rest  (when &rest (nth (1+ &rest) args))))
-               `(defun ,name* ,args
-                  ,(format nil "Like `~(~A~)' but uses `*builder*' ~
-                                instead of accepting a builder ~
-                                parameter."
-                           name)
-                  ,(if rest
-                       `(apply #',name *builder* ,@args1 ,rest)
-                       `(,name *builder* ,@args1))))))
-  (define-abbreviation prepare ())
-  (define-abbreviation finish (result))
-  (define-abbreviation wrap (thunk))
-
-  (define-abbreviation make-node (kind &rest initargs
-                                  &key &allow-other-keys))
-  (define-abbreviation finish-node (kind node))
-  (define-abbreviation relate (relation left right
-                               &rest args &key &allow-other-keys))
-
-  (define-abbreviation make+finish-node (node &rest initargs
-                                         &key &allow-other-keys))
-  (define-abbreviation make+finish-node+relations (kind initargs relations)))
-
 ;;; "Un-build" protocol
 ;;;
 ;;; This protocol allows nodes made by a given builder to be
@@ -363,3 +334,39 @@
                         relation-args node kind relations initargs)))))
     (declare (dynamic-extent #'walk-node))
     (walk-node function '() root)))
+
+;;; Abbreviated versions of build, "un-build" and `walk-nodes' methods
+
+(macrolet ((define-abbreviation (name (&rest args))
+             (let* ((name* (symbolicate name '#:*))
+                    (&rest (position '&rest args))
+                    (args1 (subseq args 0 &rest))
+                    (rest  (when &rest (nth (1+ &rest) args))))
+               `(defun ,name* ,args
+                  ,(format nil "Like `~(~A~)' but uses `*builder*' ~
+                                instead of accepting a builder ~
+                                parameter."
+                           name)
+                  ,(if rest
+                       `(apply #',name *builder* ,@args1 ,rest)
+                       `(,name *builder* ,@args1))))))
+  (define-abbreviation prepare ())
+  (define-abbreviation finish (result))
+  (define-abbreviation wrap (thunk))
+
+  (define-abbreviation make-node (kind &rest initargs
+                                  &key &allow-other-keys))
+  (define-abbreviation finish-node (kind node))
+  (define-abbreviation relate (relation left right
+                               &rest args &key &allow-other-keys))
+
+  (define-abbreviation make+finish-node (node &rest initargs
+                                         &key &allow-other-keys))
+  (define-abbreviation make+finish-node+relations (kind initargs relations))
+
+  (define-abbreviation node-kind (node))
+  (define-abbreviation node-initargs (node))
+  (define-abbreviation node-relations (node))
+  (define-abbreviation node-relation (relation node))
+
+  (define-abbreviation walk-nodes (function root)))
