@@ -16,7 +16,9 @@
                                   :target builder1))
          (node2    (make-node builder2 :foo))
          (node1    (make-node builder2 :bar)))
-    (is (equalp #1=(mock-node :bar () `((:child . ((,#2=(mock-node :foo) . nil)))))
+    (is (equalp #1=(mock-node :bar
+                              :relations `((:child . ((,#2=(mock-node :foo :finished? t) . nil))))
+                              :finished? t)
                 (finish builder2 (relate builder2 :child node1 node2))))
     (is (equalp `((prepare)
                   (wrap)

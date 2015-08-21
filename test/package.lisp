@@ -36,17 +36,22 @@
 ;;; `mock-node' and mock builders
 
 (defstruct (mock-node
-             (:constructor mock-node (kind &optional slots relations))
+             (:constructor mock-node (kind &key slots relations finished?))
              (:conc-name node-))
   (kind      nil :type symbol :read-only t)
   (slots     '() :type list)
-  (relations '() :type list))
+  (relations '() :type list)
+  (finished? nil :type boolean))
 
 (defclass mock-builder () ())
 
 (defmethod make-node ((builder mock-builder) (kind t)
                       &rest initargs)
-  (mock-node kind initargs))
+  (mock-node kind :slots initargs))
+
+(defmethod finish-node ((builder mock-builder) (kind t) (node mock-node))
+  (setf (node-finished? node) t)
+  node)
 
 (defmethod relate ((builder  mock-builder)
                    (relation t)

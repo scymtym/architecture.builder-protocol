@@ -32,7 +32,7 @@
       (builder (make-instance 'preparable-mock-builder))
       prepare
     (let ((builder (prepare builder)))
-      (is (equalp (mock-node :foo '(:prepared? t))
+      (is (equalp (mock-node :foo :slots '(:prepared? t))
                   (make-node builder :foo))))))
 
 (test finish.smoke
@@ -67,7 +67,7 @@
       make-node
     (is (equalp (mock-node :foo)
                 (make-node builder :foo)))
-    (is (equalp (mock-node :foo '(:bar 1))
+    (is (equalp (mock-node :foo :slots '(:bar 1))
                 (make-node builder :foo :bar 1)))))
 
 (test relate.smoke
@@ -75,8 +75,10 @@
 
   (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
       relate
-    (is (equalp (mock-node :foo () `((:baz . ((,(mock-node :bar) . nil)))))
+    (is (equalp (mock-node :foo
+                           :relations `((:baz . ((,(mock-node :bar) . nil)))))
                 (relate builder :baz (mock-node :foo) (mock-node :bar))))
-    (is (equalp (mock-node :foo () `((:baz . ((,(mock-node :bar) . (:fez 2))))))
+    (is (equalp (mock-node :foo
+                           :relations `((:baz . ((,(mock-node :bar) . (:fez 2))))))
                 (relate builder :baz (mock-node :foo) (mock-node :bar)
                         :fez 2)))))

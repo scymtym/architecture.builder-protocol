@@ -12,7 +12,7 @@
   (let ((result (with-builder ((make-instance
                                 'preparable-finish-mock-builder))
                   (make-node *builder* :foo))))
-    (is (equalp `(:finish ,(mock-node :foo '(:prepared? t))) result))))
+    (is (equalp `(:finish ,(mock-node :foo :slots '(:prepared? t))) result))))
 
 (test with-builder.smoke.2
   "Smoke test for second syntax of the `with-builder' macro."
@@ -20,4 +20,4 @@
   (let ((result (with-builder (builder (make-instance
                                         'preparable-finish-mock-builder))
                   (make-node builder :foo))))
-    (is (equalp `(:finish ,(mock-node :foo '(:prepared? t))) result))))
+    (is (equalp `(:finish ,(mock-node :foo :slots '(:prepared? t))) result))))
