@@ -70,6 +70,26 @@
     (is (equalp (mock-node :foo :slots '(:bar 1))
                 (make-node builder :foo :bar 1)))))
 
+(test finish-node.smoke
+  "Smoke test for the `finish-node[*]' functions."
+
+  (with-implicit-and-explicit-builder
+      (builder (make-instance 'mock-builder))
+      finish-node
+    (is (equalp (mock-node :foo :finished? t)
+                (finish-node builder :foo (mock-node :foo))))))
+
+(test make+finish-node.smoke
+  "Smoke test for the `make+finish-node[*]' functions."
+
+  (with-implicit-and-explicit-builder
+      (builder (make-instance 'mock-builder))
+      make+finish-node
+    (is (equalp (mock-node :foo :finished? t)
+                (make+finish-node builder :foo)))
+    (is (equalp (mock-node :foo :slots '(:bar 1) :finished? t)
+                (make+finish-node builder :foo :bar 1)))))
+
 (test relate.smoke
   "Smoke test for `relate[*]' functions."
 
@@ -82,3 +102,24 @@
                            :relations `((:baz . ((,(mock-node :bar) . (:fez 2))))))
                 (relate builder :baz (mock-node :foo) (mock-node :bar)
                         :fez 2)))))
+
+(test make+finish-node+relations.smoke
+  "Smoke test for the `make+finish-node+relations[*]' functions."
+
+  (with-implicit-and-explicit-builder
+      (builder (make-instance 'mock-builder))
+      make+finish-node+relations
+    (is (equalp (mock-node :foo :finished? t)
+                (make+finish-node+relations builder :foo '() '())))
+    (is (equalp (mock-node :foo :slots '(:bar 1) :finished? t)
+                (make+finish-node+relations builder :foo '(:bar 1) '())))
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz))) )
+                           :finished? t)
+                (make+finish-node+relations
+                 builder :foo '() `((1 :fez ,(mock-node :baz))))))
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz))))
+                           :finished? t)
+                (make+finish-node+relations
+                 builder :foo '() `((* :fez (,(mock-node :baz)))))))))
