@@ -37,7 +37,7 @@
 
 (defstruct (mock-node
              (:constructor mock-node (kind &key slots relations finished?))
-             (:conc-name node-))
+             (:conc-name mock-))
   (kind      nil :type symbol :read-only t)
   (slots     '() :type list)
   (relations '() :type list)
@@ -50,7 +50,7 @@
   (mock-node kind :slots initargs))
 
 (defmethod finish-node ((builder mock-builder) (kind t) (node mock-node))
-  (setf (node-finished? node) t)
+  (setf (mock-finished? node) t)
   node)
 
 (defmethod relate ((builder  mock-builder)
@@ -59,9 +59,9 @@
                    (right    mock-node)
                    &rest args)
   (push (cons right args)
-        (cdr (or (assoc relation (node-relations left))
+        (cdr (or (assoc relation (mock-relations left))
                  (first (push (cons relation '())
-                              (node-relations left))))))
+                              (mock-relations left))))))
   left)
 
 (defclass preparable-mock-builder (mock-builder)
