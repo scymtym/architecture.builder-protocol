@@ -159,3 +159,64 @@
     (is (equal `((,related) (()))
                (multiple-value-list
                 (node-relation builder :bar node))))))
+
+;;; Node walking protocol
+
+(test walk-nodes.smoke
+  "Smoke test for the `walk-nodes' function."
+
+  (flet ((make-recorder (cell)
+           (lambda (recurse relation-args node kind relations &rest initargs)
+             (push (list relation-args node kind relations initargs)
+                   (cdr cell))
+             (funcall recurse :relations relations))))
+    (mapc
+     (lambda (case)
+       (destructuring-bind (tree expected) case
+         (let ((builder (make-instance 'mock-builder))
+               (cell    (cons nil '())))
+           (walk-nodes builder (make-recorder cell) tree)
+           (is (equal expected (nreverse (cdr cell)))))))
+
+     `(,(let ((node (mock-node :foo)))
+          `(,node
+            ((() ,node :foo () ()))))
+
+       ,(let ((node (mock-node :foo :slots '(:a 1))))
+          `(,node
+            ((() ,node :foo () (:a 1)))))
+
+       ,(let* ((node-1 (mock-node :foo))
+               (node-2 (mock-node :bar
+                                  :relations `((:baz . ((,node-1)))))))
+          `(,node-2
+            ((() ,node-2 :bar (:baz) ())
+             (() ,node-1 :foo ()     ()))))
+
+       ,(let* ((node-1 (mock-node :foo))
+               (node-2 (mock-node :bar
+                                  :relations `((:baz . ((,node-1 :b 2)))))))
+           `(,node-2
+             ((()     ,node-2 :bar (:baz) ())
+              ((:b 2) ,node-1 :foo ()     ()))))
+
+       ,(let* ((node-1 (mock-node :foo))
+               (node-2 (mock-node :bar
+                                  :relations `(((:baz . ?) . (,node-1))))))
+          `(,node-2
+            ((() ,node-2 :bar ((:baz . ?)) ())
+             (() ,node-1 :foo ()           ()))))
+
+       ,(let* ((node-1 (mock-node :foo))
+               (node-2 (mock-node :bar
+                                  :relations `(((:baz2 . 1) . (,node-1))))))
+          `(,node-2
+            ((() ,node-2 :bar ((:baz2 . 1)) ())
+             (() ,node-1 :foo ()           ()))))
+
+       ,(let* ((node-1 (mock-node :foo))
+               (node-2 (mock-node :bar
+                                  :relations `(((:baz . *) . ((,node-1)))))))
+          `(,node-2
+            ((() ,node-2 :bar ((:baz . *)) ())
+             (() ,node-1 :foo ()           ()))))))))

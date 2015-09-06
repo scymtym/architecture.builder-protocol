@@ -45,6 +45,10 @@
    #:node-relations
    #:node-relation)
 
+  ;; Node walking protocol
+  (:export
+   #:walk-nodes)
+
   ;; `top-down-forcing-builder'
   (:export
    #:top-down-forcing-builder)

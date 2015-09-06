@@ -214,6 +214,10 @@
        ;     VALUE: 3
       #+end_src
 ** TODO "Un-build" Protocol
+*** STARTED The =walk-nodes= Function
+    The generic function =walk-nodes= can be used to traverse trees of
+    nodes built using the build protocol. It uses the "un-build"
+    protocol and can thus handle arbitrary tree representations.
 * TODO Reference
 * TODO Related Work
 * Settings                                                         :noexport:

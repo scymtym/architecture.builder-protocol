@@ -79,8 +79,17 @@
 (defmethod node-relation ((builder  mock-builder)
                           (relation t)
                           (node     mock-node))
-  (when-let ((cell (cdr (assoc relation (mock-relations node)))))
-    (values (mapcar #'car cell) (mapcar #'cdr cell))))
+  (when-let ((cell (assoc relation (mock-relations node)
+                          :key (lambda (cell)
+                                 (if (consp cell)
+                                     (car cell)
+                                     cell)))))
+    (destructuring-bind (relation . targets) cell
+      (case (when (consp relation) (cdr relation))
+        ((? 1)
+         (values (car targets) (cdr targets)))
+        (t
+         (values (mapcar #'car targets) (mapcar #'cdr targets)))))))
 
 (defclass preparable-mock-builder (mock-builder)
   ((prepared? :accessor builder-prepared?

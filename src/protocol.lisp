@@ -279,3 +279,87 @@
 
 (defmethod node-relations ((builder t) (node t))
   '())
+
+;;; Node walking protocol
+;;;
+;;; Built on top of the un-build protocol, this protocol allows trees
+;;; of nodes constructed by a given builder to be walked in generic
+;;; fashion.
+;;;
+;;; Concretely, the higher-order function `walk-nodes' accepts a
+;;; function which it calls on (potentially) each node of the
+;;; tree. Node kinds, initargs and relations are determined using the
+;;; known builder and the un-build protocol and made available to the
+;;; function.
+
+(defgeneric walk-nodes (builder function root)
+  (:documentation
+   "Call FUNCTION on nodes of the tree ROOT constructed by BUILDER.
+
+    The lambda-list of FUNCTION must be compatible to
+
+      (recurse relation-args node kind relations &rest initargs)
+
+    where RELATION-ARGS are the arguments of the relation connecting
+    NODE to the previously visited node,
+
+    NODE is the node currently being visited,
+
+    KIND is the kind returned by `node-kind' for BUILDER and NODE.
+
+    RELATIONS are the relations returned by `node-relations' for
+    BUILDER and NODE.
+
+    INITARGS are the initargs returned by `node-initargs' for BUILDER
+    and NODE.
+
+    RECURSE is a function with the lambda-list
+
+      (&key relations function)
+
+    that can be called, optionally with a list of relations, to
+    traverse the nodes related to NODE by that relation. If a list of
+    relations is not supplied via the :relations keyword parameter,
+    all relations are traversed. The :function keyword parameter
+    allows performing the traversal with a different function instead
+    of FUNCTION.
+
+    Depending on FUNCTION, potentially return a list-of-lists of the
+    same shape as the traversed tree containing return values of
+    FUNCTION."))
+
+;; Default methods
+
+(defmethod walk-nodes ((builder t) (function t) (root t))
+  (walk-nodes (coerce function 'function) builder root))
+
+(defmethod walk-nodes ((builder t) (function function) (root t))
+  (labels ((walk-node (function relation-args node)
+             (let ((kind      (node-kind builder node))
+                   (initargs  (node-initargs builder node))
+                   (relations (node-relations builder node)))
+               (flet ((recurse (&key (relations relations) (function function))
+                        (loop :for relation-and-cardinality :in relations
+                           :for cardinality = (when (consp relation-and-cardinality)
+                                                (cdr relation-and-cardinality))
+                           :for relation = (if (consp relation-and-cardinality)
+                                               (car relation-and-cardinality)
+                                               relation-and-cardinality) :do
+                           (multiple-value-bind (targets args)
+                               (node-relation builder relation node)
+                             (ecase cardinality
+                               (?
+                                (when targets
+                                  (walk-node function args targets)))
+                               (1
+                                (walk-node function args targets))
+                               ((nil *)
+                                (when targets
+                                  (mapcar (curry #'walk-node function)
+                                          (or args (circular-list '()))
+                                          targets))))))))
+                 (declare (dynamic-extent #'recurse))
+                 (apply function #'recurse
+                        relation-args node kind relations initargs)))))
+    (declare (dynamic-extent #'walk-node))
+    (walk-node function '() root)))
