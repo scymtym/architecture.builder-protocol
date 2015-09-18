@@ -6,6 +6,20 @@
 
 (cl:in-package #:architecture.builder-protocol)
 
+;;; Types
+
+(deftype relation-cardinality ()
+  "Cardinality of a relation between nodes.
+
+   ? Zero or one \"right\" nodes can be related to the \"left\" node.
+
+   1 Exactly one \"right\" node is related to the \"left\" node.
+
+   * Zero or more \"right\" nodes can be related to the \"left\" node.
+
+   See `relate' for \"left\" and \"right\" node roles."
+  '(member ? 1 *))
+
 ;;; Builder protocol
 ;;;
 ;;; This protocol allows producers such as parsers to construct object
@@ -121,10 +135,22 @@
 
    RELATIONS is a list of relation specifications of the form
 
-     ((1 | *) RELATION-KIND RIGHT &rest ARGS)
+     (CARDINALITY RELATION-KIND RIGHT &rest ARGS)
 
    which are translated into `relate' calls in which the created node
-   is the \"left\" argument to `relate'.
+   is the \"left\" argument to `relate'. CARDINALITY has to be of type
+   `relation-cardinality' and is interpreted as follows:
+
+     ? -> RIGHT is a single node or nil.
+
+     1 -> RIGHT is a single node.
+
+     * -> RIGHT is a (possibly empty) sequence of nodes.
+
+   RELATION-KIND does not have to be unique across the elements of
+   RELATIONS. This allows multiple \"right\" nodes to be related to
+   LEFT via a given RELATION-KIND with CARDINALITY * in multiple
+   RELATIONS entries, potentially with different ARGS.
 
    `finish-node' is called on the created node. The created node is
    returned."
@@ -138,8 +164,8 @@
              (reduce (lambda (left spec)
                        (destructuring-bind (arity relation right &rest args) spec
                          (ecase arity
-                           (1 (add-relation/one left relation right args))
-                           (* (add-relation/sequence left relation right args)))))
+                           ((1 ?) (add-relation/one left relation right args))
+                           (*     (add-relation/sequence left relation right args)))))
                      relations :initial-value left)))
     (finish-node
      builder kind

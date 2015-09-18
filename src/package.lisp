@@ -9,6 +9,11 @@
    #:cl
    #:alexandria)
 
+  ;; Types
+  (:export
+   #:?                              ; cardinality specifier
+   #:relation-cardinality)
+
   ;; Variables
   (:export
    #:*builder*)
