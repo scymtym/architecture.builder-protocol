@@ -122,7 +122,19 @@
                            :relations `((:fez (,(mock-node :baz))))
                            :finished? t)
                 (make+finish-node+relations
-                 builder :foo '() `((* :fez (,(mock-node :baz)))))))))
+                 builder :foo '() `((* :fez (,(mock-node :baz)))))))
+    ;; :map cardinality.
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz) :who 1)))
+                           :finished? t)
+                (make+finish-node+relations
+                 builder :foo '() `(((:map . :who) :fez ,(mock-node :baz)
+                                     :who 1)))))
+    ;; :map cardinality requires key to be present as relation
+    ;; argument.
+    (signals error
+      (make+finish-node+relations
+       builder :foo '() `(((:map . :who) :fez ,(mock-node :baz)))))))
 
 ;;; Un-build protocol tests
 
@@ -224,4 +236,12 @@
                                   :relations `(((:baz . *) . ((,node-1)))))))
           `(,node-2
             ((() ,node-2 :bar ((:baz . *)) ())
-             (() ,node-1 :foo ()           ()))))))))
+             (() ,node-1 :foo ()           ()))))
+
+       ,(let* ((node-1 (mock-node :foo))
+               (node-2 (mock-node :bar
+                                  :relations `(((:baz . (:map . :key))
+                                                . ((,node-1 . (:key "foo"))))))))
+          `(,node-2
+            ((()           ,node-2 :bar ((:baz . (:map . :key))) ())
+             ((:key "foo") ,node-1 :foo ()                       ()))))))))

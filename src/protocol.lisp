@@ -18,7 +18,7 @@
    * Zero or more \"right\" nodes can be related to the \"left\" node.
 
    See `relate' for \"left\" and \"right\" node roles."
-  '(member ? 1 *))
+  '(or (member ? 1 *) (cons (eql :map))))
 
 ;;; Build protocol
 ;;;
@@ -141,11 +141,15 @@
    is the \"left\" argument to `relate'. CARDINALITY has to be of type
    `relation-cardinality' and is interpreted as follows:
 
-     ? -> RIGHT is a single node or nil.
+     ?            -> RIGHT is a single node or nil.
 
-     1 -> RIGHT is a single node.
+     1            -> RIGHT is a single node.
 
-     * -> RIGHT is a (possibly empty) sequence of nodes.
+     *            -> RIGHT is a (possibly empty) sequence of nodes.
+
+     (:map . KEY) -> RIGHT is a single node that should be associated
+                     to the mapping key that is the value of KEY in
+                     the ARGS plist for RIGHT.
 
    RELATION-KIND does not have to be unique across the elements of
    RELATIONS. This allows multiple \"right\" nodes to be related to
@@ -163,9 +167,18 @@
            (add-relations (left relations)
              (reduce (lambda (left spec)
                        (destructuring-bind (arity relation right &rest args) spec
-                         (ecase arity
-                           ((1 ?) (add-relation/one left relation right args))
-                           (*     (add-relation/sequence left relation right args)))))
+                         (etypecase arity
+                           ((member 1 ?)
+                            (add-relation/one left relation right args))
+                           ((eql *)
+                            (add-relation/sequence left relation right args))
+                           ((cons (eql :map))
+                            (let ((key (cdr arity)))
+                              (unless (getf args key)
+                                (error "~@<~S key ~S is missing in ~
+                                        relation arguments ~S.~@:>"
+                                       :map key args))
+                              (add-relation/one left relation right args))))))
                      relations :initial-value left)))
     (finish-node
      builder kind
@@ -318,13 +331,13 @@
                                                relation-and-cardinality) :do
                            (multiple-value-bind (targets args)
                                (node-relation builder relation node)
-                             (ecase cardinality
-                               (?
+                             (etypecase cardinality
+                               ((eql ?)
                                 (when targets
                                   (walk-node function args targets)))
-                               (1
+                               ((eql 1)
                                 (walk-node function args targets))
-                               ((nil *)
+                               ((or (eql nil) (eql *) (cons (eql :map)))
                                 (when targets
                                   (mapcar (curry #'walk-node function)
                                           (or args (circular-list '()))

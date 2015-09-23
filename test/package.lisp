@@ -85,10 +85,10 @@
                                      (car cell)
                                      cell)))))
     (destructuring-bind (relation . targets) cell
-      (case (when (consp relation) (cdr relation))
-        ((? 1)
+      (etypecase (when (consp relation) (cdr relation))
+        ((member ? 1)
          (values (car targets) (cdr targets)))
-        (t
+        ((or null (eql *) (cons (eql :map)))
          (values (mapcar #'car targets) (mapcar #'cdr targets)))))))
 
 (defclass preparable-mock-builder (mock-builder)
