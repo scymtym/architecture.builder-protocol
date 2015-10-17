@@ -8,6 +8,8 @@
 
 (in-suite :architecture.builder-protocol)
 
+;;; Build protocol
+
 (test list-builder.make-node.smoke
   "Smoke test for the `make-node' method specialized on the `list'
    builder."
@@ -51,3 +53,55 @@
     (relate builder :baz node-1 node-2 :arg 1)
     (is (equal `(:foo (:baz ((,node-2 . (:arg 1))))) node-1))))
 
+;;; "Un-build" protocol
+
+(test list-builder.node-kind.smoke
+  "Smoke test for the `node-kind' method specialized on the `list'
+   builder."
+
+  (flet ((do-it (node expected)
+           (is (eq expected (node-kind 'list node)))))
+    (do-it '(:foo ())                       :foo)
+    (do-it '(:foo () :bar 1)                :foo)
+    (do-it '(:foo (:baz (((:fez ()). ())))) :foo)))
+
+(test list-builder.node-initargs.smoke
+  "Smoke test for the `node-initargs' method specialized on the `list'
+   builder."
+
+  (flet ((do-it (node expected)
+           (is (equal expected (node-initargs 'list node)))))
+    (do-it '(:foo ())                        '())
+    (do-it '(:foo () :bar 1)                 '(:bar 1))
+    (do-it '(:foo (:baz (((:fez ()) . ())))) '())))
+
+(test list-builder.node-relations.smoke
+  "Smoke test for the `node-relations' method specialized on the
+   `list' builder."
+
+  (flet ((do-it (node expected)
+           (is (equal expected (node-relations 'list node)))))
+    (do-it '(:foo ())                        '())
+    (do-it '(:foo () :bar 1)                 '())
+    (do-it '(:foo (:baz (((:fez ()) . ())))) '(:baz))))
+
+(test list-builder.node-relation.smoke
+  "Smoke test for the `node-relation' method specialized on the `list'
+   builder."
+
+  (flet ((do-it (node relation expected)
+           (is (equal expected (multiple-value-list
+                                (node-relation 'list relation node))))))
+    ;; No relations.
+    (do-it '(:foo ())        :baz '(() ()))
+    (do-it '(:foo () :bar 1) :baz '(() ()))
+    ;; One relation.
+    (let* ((node-2 '(:fez ()))
+           (node-1 `(:foo (:baz ((,node-2 . (:who 2)))))))
+      (do-it node-1 :baz `((,node-2) ((:who 2)))))
+    ;; Multiple relations
+    (let* ((node-3 '(:arp ()))
+           (node-2 '(:fez ()))
+           (node-1 `(:foo (:baz ((,node-2 . (:who 2))) :dot ((,node-3 . (:dat 3)))))))
+      (do-it node-1 :baz `((,node-2) ((:who 2))))
+      (do-it node-1 :dot `((,node-3) ((:dat 3)))))))

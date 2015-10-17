@@ -45,6 +45,8 @@
 
 (cl:in-package #:architecture.builder-protocol)
 
+;;; Implementation of the build protocol
+
 (defmethod make-node ((builder (eql 'list)) (kind t) &rest initargs &key)
   (list* kind '() initargs))
 
@@ -58,3 +60,20 @@
 
 (defmethod relate ((builder (eql 'list)) (relation t) (left t) (right null) &key)
   left)
+
+;;; Implementation of the "un-build" protocol
+
+(defmethod node-kind ((builder (eql 'list)) (node cons))
+  (first node))
+
+(defmethod node-initargs ((builder (eql 'list)) (node cons))
+  (nthcdr 2 node))
+
+(defmethod node-relations ((builder (eql 'list)) (node cons))
+  (loop :for (key) :on (second node) :by #'cddr :collect key))
+
+(defmethod node-relation ((builder (eql 'list)) (relation t) (node cons))
+  (let ((entries (loop :for (key entries) :on (second node) :do
+                    (when (eq relation (normalize-relation key))
+                      (return entries)))))
+    (values (mapcar #'car entries) (mapcar #'cdr entries))))
