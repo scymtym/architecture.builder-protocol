@@ -6,6 +6,8 @@
 
 (cl:in-package #:architecture.builder-protocol.test)
 
+(in-suite :architecture.builder-protocol)
+
 ;;; `with-builder'
 
 (test with-builder.smoke.1
