@@ -47,6 +47,7 @@
                  :serial     t
                  :components ((:file       "package")
 
+                              (:file       "util")
                               (:file       "variables")
                               (:file       "protocol")
                               (:file       "macros")
@@ -68,6 +69,7 @@
                  :serial     t
                  :components ((:file       "package")
 
+                              (:file       "util")
                               (:file       "protocol")
                               (:file       "macros")
 

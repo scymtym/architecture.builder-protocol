@@ -58,6 +58,10 @@
   (:export
    #:top-down-forcing-builder)
 
+  ;; Utilities
+  (:export
+   #:normalize-relation)
+
   (:documentation
    "This package contains the build and \"un-build\" protocols.
 
