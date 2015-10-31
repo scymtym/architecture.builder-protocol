@@ -73,6 +73,7 @@
                               (:file       "protocol")
                               (:file       "macros")
 
+                              (:file       "list-builder")
                               (:file       "top-down-forcing-builder")))))
 
 (defmethod perform ((op        test-op)
