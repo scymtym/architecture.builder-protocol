@@ -106,8 +106,8 @@
 
 (defclass finish-mock-builder (mock-builder) ())
 
-(defmethod finish ((builder finish-mock-builder) (result t))
-  (list :finish result))
+(defmethod finish ((builder finish-mock-builder) (values cons))
+  (apply #'values (list :finish (first values)) (rest values)))
 
 (defclass preparable-finish-mock-builder (preparable-mock-builder
                                           finish-mock-builder)
@@ -120,8 +120,8 @@
 (defmethod prepare :before ((builder call-recording-mock-builder))
   (appendf (builder-calls builder) '((prepare))))
 
-(defmethod finish :before ((builder call-recording-mock-builder) (result t))
-  (appendf (builder-calls builder) `((finish ,result))))
+(defmethod finish :before ((builder call-recording-mock-builder) (values t))
+  (appendf (builder-calls builder) `((finish ,(first values)))))
 
 (defmethod wrap :before ((builder call-recording-mock-builder) (thunk t))
   (appendf (builder-calls builder) '((wrap))))
