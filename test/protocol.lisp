@@ -42,7 +42,7 @@
       (builder (prepare (make-instance 'finish-mock-builder)))
       finish
     (is (equalp `(:finish ,(mock-node :foo))
-                (finish builder (make-node builder :foo))))))
+                (finish builder (list (make-node builder :foo)))))))
 
 (defun a-wrapper (builder)
   (make-node builder :foo))
@@ -54,7 +54,7 @@
                `(with-implicit-and-explicit-builder
                     (builder (make-instance 'mock-builder))
                     wrap
-                  (is (equalp (mock-node :foo) (wrap builder ,wrapper))))))
+                  (is (equalp (list (mock-node :foo)) (wrap builder ,wrapper))))))
     (test-case 'a-wrapper)
     (test-case #'a-wrapper)))
 

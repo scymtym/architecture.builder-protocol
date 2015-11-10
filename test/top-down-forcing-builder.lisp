@@ -16,10 +16,19 @@
                                   :target builder1))
          (node2    (make-node builder2 :foo))
          (node1    (make-node builder2 :bar)))
-    (is (equalp #1=(mock-node :bar
-                              :relations `((:child . ((,#2=(mock-node :foo :finished? t) . nil))))
-                              :finished? t)
-                (finish builder2 (relate builder2 :child node1 node2))))
+    ;; Test return value, i.e. produce tree plus additional return
+    ;; values.
+    (is (equalp (list #1=(mock-node :bar
+                                    :relations `((:child . ((,#2=(mock-node :foo :finished? t) . nil))))
+                                    :finished? t)
+                      2)
+                (multiple-value-list
+                 (finish builder2
+                         (wrap builder2
+                               (lambda (builder)
+                                 (values (relate builder :child node1 node2)
+                                         2)))))))
+    ;; Test builder calls made and their order.
     (is (equalp `((prepare)
                   (wrap)
                   (make-node :bar)

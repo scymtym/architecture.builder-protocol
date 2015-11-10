@@ -60,7 +60,7 @@
                    &rest args &key)
   (apply #'relate 'delayed relation left right args))
 
-(defmethod finish ((builder top-down-forcing-builder) (result t))
+(defmethod finish ((builder top-down-forcing-builder) (result cons))
   (labels ((relate-child (left relation)
              (destructuring-bind (relation right args) relation
                (apply #'relate *builder* relation left (visit right) args)))
@@ -74,4 +74,4 @@
                (finish-node *builder* kind node))))
     (declare (dynamic-extent #'relate-child #'visit))
     (with-builder ((builder-target builder))
-      (visit result))))
+      (apply #'values (visit (first result)) (rest result)))))

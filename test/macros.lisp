@@ -13,10 +13,12 @@
 (test with-builder.smoke.1
   "Smoke test for first syntax of the `with-builder' macro."
 
-  (let ((result (with-builder ((make-instance
-                                'preparable-finish-mock-builder))
-                  (make-node *builder* :foo))))
-    (is (equalp `(:finish ,(mock-node :foo :slots '(:prepared? t))) result))))
+  (multiple-value-bind (result-1 result-2)
+      (with-builder ((make-instance
+                      'preparable-finish-mock-builder))
+        (values (make-node *builder* :foo) 2))
+    (is (equalp `(:finish ,(mock-node :foo :slots '(:prepared? t))) result-1))
+    (is (eql 2 result-2))))
 
 (test with-builder.smoke.2
   "Smoke test for second syntax of the `with-builder' macro."

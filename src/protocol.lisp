@@ -32,7 +32,7 @@
 ;;;
 ;;;   prepare builder                                   [generic function]
 ;;;
-;;;   finish builder result                             [generic function]
+;;;   finish builder values                             [generic function]
 ;;;
 ;;;   wrap builder thunk                                [generic function]
 ;;;
@@ -52,11 +52,11 @@
 
     The default method just returns BUILDER."))
 
-(defgeneric finish (builder result)
+(defgeneric finish (builder values)
   (:documentation
-   "Finalize and return RESULT produced by BUILDER.
+   "Finalize and return VALUES produced by BUILDER.
 
-    The default method just returns RESULT."))
+    The default method just returns VALUES."))
 
 (defgeneric wrap (builder thunk)
   (:documentation
@@ -99,17 +99,17 @@
   builder)
 
 ;; No action, just return the result.
-(defmethod finish ((builder t) (result t))
-  result)
+(defmethod finish ((builder t) (result cons))
+  (values-list result))
 
 ;; No action, just call the function.
 (defmethod wrap ((builder t) (thunk function))
   (let ((*builder* builder))
-    (funcall thunk builder)))
+    (multiple-value-list (funcall thunk builder))))
 
 (defmethod wrap ((builder t) (thunk symbol))
   (let ((*builder* builder))
-    (funcall thunk builder)))
+    (multiple-value-list (funcall thunk builder))))
 
 ;; This allows consumers to omit defining a method on `finish-node'.
 (defmethod finish-node ((builder t) (kind t) (node t))
