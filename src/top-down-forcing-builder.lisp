@@ -19,7 +19,8 @@
 ;;; children, children before parent or a mix of the two). The nodes
 ;;; form a tree that can walked in a top-down fashion.
 
-(defstruct (delayed-node (:constructor make-delayed-node (kind initargs)))
+(defstruct (delayed-node (:constructor make-delayed-node (kind initargs))
+                         (:copier nil))
   (kind     (error "missing initarg ~S" :kind) :read-only t)
   (initargs '()                                :read-only t)
   (children '()))
