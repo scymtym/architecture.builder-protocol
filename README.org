@@ -38,6 +38,13 @@
   [[https://travis-ci.org/scymtym/architecture.builder-protocol][https://travis-ci.org/scymtym/architecture.builder-protocol.svg]]
 
 * STARTED Tutorial
+  #+begin_src lisp :results none :exports none :session "tutorial"
+    #.(progn
+        #1=(ql:quickload '(:alexandria :architecture.builder-protocol
+                           :utilities.print-tree))
+        '#1#)
+  #+end_src
+
 ** STARTED Build Protocol
    Since this is a probably a common case, we will use the construction
    of a simplistic AST from the output of an equally simplistic parser
@@ -49,14 +56,14 @@
 *** Implementing a Consumer of Results
     The nodes of the AST we want to construct are either literals or
     operator applications with two operands and are both expressions:
-    #+begin_src lisp
+    #+begin_src lisp :results none :exports code :session "tutorial"
       (defclass expression () ())
 
       (defclass literal (expression)
-                ((value :initarg :value :reader literal-value)))
+        ((value :initarg :value :reader literal-value)))
 
       (defclass operator (expression)
-                ((operands :accessor operator-operands :initform '())))
+        ((operands :accessor operator-operands :initform '())))
     #+end_src
     Note that the =value= slot of the =literal= is initialized using
     the =:value= initarg while the =operands= slot of the =operator=
@@ -69,20 +76,20 @@
 
     A simple implementation of the builder protocol for these nodes
     looks like this:
-    #+begin_src lisp
+    #+begin_src lisp :results none :exports code :session "tutorial"
       (defclass ast-builder () ())
 
       (defmethod architecture.builder-protocol:make-node
           ((builder ast-builder)
            (kind    (eql :literal))
            &key value)
-                (make-instance 'literal :value value))
+        (make-instance 'literal :value value))
 
       (defmethod architecture.builder-protocol:make-node
           ((builder ast-builder)
            (kind    (eql :operator))
            &key)
-                (make-instance 'operator))
+        (make-instance 'operator))
 
       (defmethod architecture.builder-protocol:relate
           ((builder  ast-builder)
@@ -90,11 +97,11 @@
            (left     operator)
            (right    expression)
            &key)
-                (alexandria:appendf (operator-operands left) (list right))
-                left)
+        (alexandria:appendf (operator-operands left) (list right))
+        left)
     #+end_src
     We can already use this without the corresponding parser:
-    #+begin_src lisp
+    #+begin_src lisp :exports both :session "tutorial"
       (let* ((builder  (make-instance 'ast-builder))
              (operands (list (architecture.builder-protocol:make+finish-node
                               builder :literal :value 5)
@@ -108,6 +115,10 @@
                     builder :operator-operand l r))
                  operands :initial-value operator)))
     #+end_src
+
+    #+RESULTS:
+    : #<OPERATOR {100E5961}>
+
 *** Implementing a Producer of Results
     We will use a parser for a very simple expressions in polish
     notation:
@@ -121,15 +132,15 @@
     previous example. Since we now parse an actual source text, source
     locations of constructed result nodes can be recorded using the
     =:bounds= initarg.
-    #+begin_src lisp
+    #+begin_src lisp :exports code :session "tutorial"
       (defun parse (stream builder)
-                (labels ((expression ()
+        (labels ((expression ()
                    (let ((c (peek-char nil stream)))
                      (cond
                        ((char= c #\+)
-                                (operator))
+                        (operator))
                        ((digit-char-p c)
-                                (literal)))))
+                        (literal)))))
                  (literal ()
                    (let ((start (stream-file-position stream))
                          (c     (read-char stream)))
@@ -146,7 +157,7 @@
                      (architecture.builder-protocol:finish-node
                       builder :operator
                       (reduce (lambda (l r)
-                                        (architecture.builder-protocol:relate
+                                (architecture.builder-protocol:relate
                                  builder :operator-operand l r))
                               operands
                               :initial-value (architecture.builder-protocol:make-node
@@ -163,23 +174,29 @@
 
     For these cases, the =architecture.builder-protocol= system
     provides a builtin =list= builder:
-    #+begin_src lisp
+    #+begin_src lisp :results value code :exports both :session "tutorial"
       (parse (make-string-input-stream "++123") 'list)
-      => (:OPERATOR
-          (:OPERATOR-OPERAND
-           ((:OPERATOR
-             (:OPERATOR-OPERAND
-              ((:LITERAL NIL :VALUE 1 :BOUNDS (2 . 3))
-               (:LITERAL NIL :VALUE 2 :BOUNDS (3 . 4))))
-             :BOUNDS (1 . 4))
-            (:LITERAL NIL :VALUE 3 :BOUNDS (4 . 5))))
-          :BOUNDS (0 . 5))
     #+end_src
+
+    #+RESULTS:
+    #+BEGIN_SRC lisp
+
+    (:OPERATOR
+     (:OPERATOR-OPERAND
+      (((:OPERATOR
+         (:OPERATOR-OPERAND
+          (((:LITERAL NIL :VALUE 1 :BOUNDS (2 . 3)))
+           ((:LITERAL NIL :VALUE 2 :BOUNDS (3 . 4)))))
+         :BOUNDS (1 . 4)))
+       ((:LITERAL NIL :VALUE 3 :BOUNDS (4 . 5)))))
+     :BOUNDS (0 . 5))
+    #+END_SRC
+
 **** Printing =list= Builder Results
      This may be slightly off-topic, but a nice hack for printing
      /arbitrary/ results produced by the =list= builder can be done
      using the [[http://github.com/scymtym/utilities.print-tree][=utilities.print-tree= system]]:
-     #+begin_src lisp
+     #+begin_src lisp :exports code :session "tutorial"
        (defun print-tree (tree &optional (stream *standard-output*))
          (utilities.print-tree:print-tree
           stream tree
@@ -199,28 +216,30 @@
                        (alexandria:remove-from-plist slots :bounds))))
            (lambda (node)
              (loop :for (relation nodes) :on (second node) :by #'cddr
-                        :appending nodes)))))
+                :appending (mapcar #'car nodes))))))
      #+end_src
      Putting these pieces together, we can achieve the following:
-     #+begin_src lisp
+     #+begin_src lisp :results output :exports both :session "tutorial"
        (print-tree (parse (make-string-input-stream "++123") 'list))
-       ; OPERATOR @(0 . 5)
-       ; ├─OPERATOR @(1 . 4)
-       ; │ ├─LITERAL @(2 . 3)
-       ; │ │   VALUE: 1
-       ; │ └─LITERAL @(3 . 4)
-       ; │     VALUE: 2
-       ; └─LITERAL @(4 . 5)
-       ;     VALUE: 3
-      #+end_src
+     #+end_src
+
+     #+RESULTS:
+     : OPERATOR @(0 . 5)
+     : ├─OPERATOR @(1 . 4)
+     : │ ├─LITERAL @(2 . 3)
+     : │ │   VALUE: 1
+     : │ └─LITERAL @(3 . 4)
+     : │     VALUE: 2
+     : └─LITERAL @(4 . 5)
+     :     VALUE: 3
+
 ** TODO "Un-build" Protocol
 *** STARTED The =walk-nodes= Function
     The generic function =walk-nodes= can be used to traverse trees of
     nodes built using the build protocol. It uses the "un-build"
     protocol and can thus handle arbitrary tree representations.
 * TODO Reference
-* TODO Related Work
 * Settings                                                         :noexport:
 
-#+OPTIONS: H:3 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS: H:4 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
 #+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
