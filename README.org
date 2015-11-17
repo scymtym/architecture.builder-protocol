@@ -252,19 +252,28 @@
                 symbol (list lambda-list) trimmed)))
   #+end_src
 ** STARTED Build Protocol
-   #+begin_src lisp :exports results :sessions "doc"
+   #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:make-node 'function)
    #+end_src
 
    #+RESULTS:
-   : make-node BUILDER KIND &REST INITARGS &KEY BOUNDS VALUE &ALLOW-OTHER-KEYS
+   : make-node BUILDER KIND &REST INITARGS &KEY BOUNDS &ALLOW-OTHER-KEYS
    :
    : Use BUILDER to make a result tree node of kind KIND and return it.
    :
    : When supplied, BOUNDS is of the form (START . END) and can be used
    : to indicate the input range for which the tree is constructed.
 
-   #+begin_src lisp :exports results :sessions "doc"
+   #+begin_src lisp :exports results :session "doc"
+     (doc 'architecture.builder-protocol:finish-node 'function)
+   #+end_src
+
+   #+RESULTS:
+   : finish-node BUILDER KIND NODE
+   :
+   : Use BUILDER to perform finalization for NODE and return NODE.
+
+   #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:relate 'function)
    #+end_src
 
@@ -284,7 +293,7 @@
 #+end_example
 
 ** STARTED "Un-build" Protocol
-   #+begin_src lisp :exports results :sessions "doc"
+   #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-kind 'function)
    #+end_src
 
@@ -297,7 +306,7 @@
    : with BUILDER.
 
 
-   #+begin_src lisp :exports results :sessions "doc"
+   #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-initargs 'function)
    #+end_src
 
@@ -309,7 +318,7 @@
    : The returned list is EQUAL to the list of keyword arguments pass
    : to the MAKE-NODE call that, using BUILDER, constructed NODE.
 
-   #+begin_src lisp :exports results :sessions "doc"
+   #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-relations 'function)
    #+end_src
 
@@ -342,7 +351,7 @@
    of (node-relation BUILDER RELATION-NAME NODE).
 #+end_example
 
-   #+begin_src lisp :exports results :sessions "doc"
+   #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-relation 'function)
    #+end_src
 
