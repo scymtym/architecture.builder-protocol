@@ -17,7 +17,8 @@
   :components  ((:module     "universal-builder"
                  :pathname   "src/universal-builder"
                  :components ((:file       "package")
-                              (:file       "util"))))
+                              (:file       "util")
+                              (:file       "universal-builder"))))
   :in-order-to ((test-op (test-op :architecture.builder-protocol.universal-builder-test))))
 
 (defsystem :architecture.builder-protocol.universal-builder-test
@@ -36,7 +37,8 @@
   :components  ((:module     "universal-builder"
                  :pathname   "test/universal-builder"
                  :components ((:file       "package")
-                              (:file       "util")))))
+                              (:file       "util")
+                              (:file       "universal-builder")))))
 
 (defmethod perform ((op        test-op)
                     (component (eql (find-system :architecture.builder-protocol.universal-builder-test))))
