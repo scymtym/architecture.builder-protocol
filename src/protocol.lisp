@@ -308,42 +308,99 @@
     allows performing the traversal with a different function instead
     of FUNCTION.
 
+    If FUNCTION is an instance of `peeking', call the \"peeking\"
+    function stored in FUNCTION before the ordinary walk
+    function (also stored in FUNCTION) is called. The \"peeking\"
+    function must be compatible to
+
+      (builder relation-args node)
+
+    (i.e. it does not receive kind, initargs or relations). This
+    function can control whether NODE should be processed normally,
+    replaced with something else or ignored: Its return values are
+    interpreted as follows:
+
+    NIL
+
+      Store processing of NODE, in particular do not call `node-kind',
+      `node-relations', `node-initargs' or the walk function for NODE.
+
+    T
+
+      Continue processing as if there was no \"peeking\" function.
+
+    INSTEAD KIND INITARGS RELATIONS (four values)
+
+      Continue processing as if NODE had been replaced by INSTEAD and
+      builder had returned KIND, INITARGS and RELATIONS. In particular
+      do not call `node-kind', `node-relations', `node-initargs' for
+      NODE.
+
     Depending on FUNCTION, potentially return a list-of-lists of the
     same shape as the traversed tree containing return values of
     FUNCTION."))
 
 ;; Default methods
 
+(declaim (ftype (function ((or null function) function t t) (values &optional))
+                %walk-nodes))
+(defun %walk-nodes (peeking-function walk-function builder root)
+  (labels
+      ((walk-node (walk-function relation-args node)
+         (declare (type function walk-function))
+         (multiple-value-bind (instead kind initargs relations)
+             (if peeking-function
+                 (funcall peeking-function builder relation-args node)
+                 t)
+           (case instead
+             ((nil)
+              (return-from walk-node))
+             ((t)
+              (setf kind      (node-kind builder node)
+                    initargs  (node-initargs builder node)
+                    relations (node-relations builder node)))
+             (t
+              (setf node instead)))
+           (flet ((recurse (&key (relations relations) (function walk-function))
+                    (loop :for relation-and-cardinality :in relations :do
+                       (multiple-value-bind (relation cardinality)
+                           (normalize-relation relation-and-cardinality)
+                         (multiple-value-bind (targets args)
+                             (node-relation builder relation node)
+                           (etypecase cardinality
+                             ((eql ?)
+                              (when targets
+                                (walk-node function args targets)))
+                             ((eql 1)
+                              (walk-node function args targets))
+                             ((or (eql *) (cons (eql :map)))
+                              (when targets
+                                (mapc (curry #'walk-node function)
+                                      (or args (circular-list '()))
+                                      targets)))))))))
+             (declare (dynamic-extent #'recurse))
+             (apply walk-function #'recurse
+                    relation-args node kind relations initargs)))))
+    (declare (dynamic-extent #'walk-node))
+    (walk-node walk-function '() root)))
+
 (defmethod walk-nodes ((builder t) (function t) (root t))
   (walk-nodes (coerce function 'function) builder root))
 
 (defmethod walk-nodes ((builder t) (function function) (root t))
-  (labels ((walk-node (function relation-args node)
-             (let ((kind      (node-kind builder node))
-                   (initargs  (node-initargs builder node))
-                   (relations (node-relations builder node)))
-               (flet ((recurse (&key (relations relations) (function function))
-                        (loop :for relation-and-cardinality :in relations :do
-                           (multiple-value-bind (relation cardinality)
-                               (normalize-relation relation-and-cardinality)
-                             (multiple-value-bind (targets args)
-                                 (node-relation builder relation node)
-                               (etypecase cardinality
-                                 ((eql ?)
-                                  (when targets
-                                    (walk-node function args targets)))
-                                 ((eql 1)
-                                  (walk-node function args targets))
-                                 ((or (eql *) (cons (eql :map)))
-                                  (when targets
-                                    (mapcar (curry #'walk-node function)
-                                            (or args (circular-list '()))
-                                            targets)))))))))
-                 (declare (dynamic-extent #'recurse))
-                 (apply function #'recurse
-                        relation-args node kind relations initargs)))))
-    (declare (dynamic-extent #'walk-node))
-    (walk-node function '() root)))
+  (%walk-nodes nil function builder root))
+
+(defstruct (peeking (:constructor peeking (peeking-function walk-function))
+                    (:predicate nil)
+                    (:copier nil))
+  "Allows specifying a peeking function in conjunction with the walk function."
+  (peeking-function nil :type function :read-only t)
+  (walk-function    nil :type function :read-only t))
+
+(defmethod walk-nodes ((builder t) (function peeking) (root t))
+  (%walk-nodes (peeking-peeking-function function)
+               (peeking-walk-function function)
+               builder root))
 
 ;;; Abbreviated versions of build, "un-build" and `walk-nodes' methods
 

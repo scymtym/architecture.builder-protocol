@@ -47,7 +47,9 @@
 
   ;; Node walking protocol
   (:export
-   #:walk-nodes     #:walk-nodes*)
+   #:walk-nodes     #:walk-nodes*
+
+   #:peeking)
 
   ;; Macros related to "un-build" protocol
   (:export
