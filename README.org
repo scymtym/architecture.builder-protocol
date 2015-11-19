@@ -365,6 +365,77 @@
    : list of arguments passed to the RELATE call that, using BUILDER,
    : established the relation between NODE and the related node.
 
+   #+begin_src lisp :exports results :session "doc"
+     (doc 'architecture.builder-protocol:walk-nodes 'function)
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   walk-nodes BUILDER FUNCTION ROOT
+
+   Call FUNCTION on nodes of the tree ROOT constructed by BUILDER.
+
+   The lambda-list of FUNCTION must be compatible to
+
+   (recurse relation-args node kind relations &rest initargs)
+
+   where RELATION-ARGS are the arguments of the relation connecting
+   NODE to the previously visited node,
+
+   NODE is the node currently being visited,
+
+   KIND is the kind returned by `node-kind' for BUILDER and NODE.
+
+   RELATIONS are the relations returned by `node-relations' for
+   BUILDER and NODE.
+
+   INITARGS are the initargs returned by `node-initargs' for BUILDER
+   and NODE.
+
+   RECURSE is a function with the lambda-list
+
+   (&key relations function)
+
+   that can be called, optionally with a list of relations, to
+   traverse the nodes related to NODE by that relation. If a list of
+   relations is not supplied via the :relations keyword parameter,
+   all relations are traversed. The :function keyword parameter
+   allows performing the traversal with a different function instead
+   of FUNCTION.
+
+   If FUNCTION is an instance of `peeking', call the "peeking"
+   function stored in FUNCTION before the ordinary walk
+   function (also stored in FUNCTION) is called. The "peeking"
+   function must be compatible to
+
+   (builder relation-args node)
+
+   (i.e. it does not receive kind, initargs or relations). This
+   function can control whether NODE should be processed normally,
+   replaced with something else or ignored: Its return values are
+   interpreted as follows:
+
+   NIL
+
+   Store processing of NODE, in particular do not call `node-kind',
+   `node-relations', `node-initargs' or the walk function for NODE.
+
+   T
+
+   Continue processing as if there was no "peeking" function.
+
+   INSTEAD KIND INITARGS RELATIONS (four values)
+
+   Continue processing as if NODE had been replaced by INSTEAD and
+   builder had returned KIND, INITARGS and RELATIONS. In particular
+   do not call `node-kind', `node-relations', `node-initargs' for
+   NODE.
+
+   Depending on FUNCTION, potentially return a list-of-lists of the
+   same shape as the traversed tree containing return values of
+   FUNCTION.
+#+end_example
+
 * Settings                                                         :noexport:
 
 #+OPTIONS: H:4 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
