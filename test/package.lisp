@@ -15,6 +15,10 @@
   (:export
    #:run-tests)
 
+  ;; Test utilities
+  (:export
+   #:record-un-build-calls)
+
   (:documentation
    "This package contains unit tests for the
     architecture.builder-protocol system"))
@@ -142,3 +146,22 @@
                            (right    t)
                            &rest args)
   (appendf (builder-calls builder) `((relate ,relation ,left ,right ,@args))))
+
+;;; "Un-build"-related test utilities
+
+(defun %record-un-build-calls (builder object make-function)
+  (let ((calls '()))
+    (flet ((record (call) (push call calls)))
+      (with-unbuilder (builder)
+        (walk-nodes* (funcall make-function #'record) object)))
+    (nreverse calls)))
+
+(defun record-un-build-calls (builder object)
+  (%record-un-build-calls
+   builder object
+   (lambda (record)
+     (lambda (recurse relation-args node kind relations
+              &rest initargs)
+       (funcall record
+                `(:visit ,relation-args ,node ,kind ,relations ,initargs))
+       (funcall recurse)))))
