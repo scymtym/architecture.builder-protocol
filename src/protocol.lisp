@@ -166,19 +166,18 @@
                      right :initial-value left))
            (add-relations (left relations)
              (reduce (lambda (left spec)
-                       (destructuring-bind (arity relation right &rest args) spec
-                         (etypecase arity
-                           ((member 1 ?)
+                       (destructuring-bind (cardinality relation right &rest args) spec
+                         (cardinality-ecase cardinality
+                           ((1 ?)
                             (add-relation/one left relation right args))
-                           ((eql *)
+                           (*
                             (add-relation/sequence left relation right args))
-                           ((cons (eql :map))
-                            (let ((key (cdr arity)))
-                              (unless (getf args key)
-                                (error "~@<~S key ~S is missing in ~
-                                        relation arguments ~S.~@:>"
-                                       :map key args))
-                              (add-relation/one left relation right args))))))
+                           ((:map key)
+                            (unless (getf args key)
+                              (error "~@<~S key ~S is missing in ~
+                                      relation arguments ~S.~@:>"
+                                     :map key args))
+                            (add-relation/one left relation right args)))))
                      relations :initial-value left)))
     (finish-node
      builder kind
@@ -367,13 +366,13 @@
                            (normalize-relation relation-and-cardinality)
                          (multiple-value-bind (targets args)
                              (node-relation builder relation node)
-                           (etypecase cardinality
-                             ((eql ?)
+                           (cardinality-ecase cardinality
+                             (?
                               (when targets
                                 (walk-node function args targets)))
-                             ((eql 1)
+                             (1
                               (walk-node function args targets))
-                             ((or (eql *) (cons (eql :map)))
+                             ((* :map)
                               (when targets
                                 (mapc (curry #'walk-node function)
                                       (or args (circular-list '()))

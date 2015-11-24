@@ -62,7 +62,9 @@
 
   ;; Utilities
   (:export
-   #:normalize-relation)
+   #:normalize-relation
+
+   #:cardinality-case #:cardinality-ecase)
 
   (:documentation
    "This package contains the build and \"un-build\" protocols.
