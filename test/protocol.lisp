@@ -190,58 +190,57 @@
 
    `(,(let ((node (mock-node :foo)))
         `(,node
-          ((:visit () ,node :foo () ()))))
+          ((:visit nil () ,node :foo () ()))))
 
      ,(let ((node (mock-node :foo :slots '(:a 1))))
         `(,node
-          ((:visit() ,node :foo () (:a 1)))))
+          ((:visit nil () ,node :foo () (:a 1)))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                  :relations `((:baz . ((,node-1)))))))
         `(,node-2
-          ((:visit () ,node-2 :bar (:baz) ())
-           (:visit () ,node-1 :foo ()     ()))))
+          ((:visit nil  () ,node-2 :bar (:baz) ())
+           (:visit :baz () ,node-1 :foo ()     ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1 :b 2)))))))
         `(,node-2
-          ((:visit ()     ,node-2 :bar (:baz) ())
-           (:visit (:b 2) ,node-1 :foo ()     ()))))
+          ((:visit nil  ()     ,node-2 :bar (:baz) ())
+           (:visit :baz (:b 2) ,node-1 :foo ()     ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `(((:baz . ?) . (,node-1))))))
         `(,node-2
-          ((:visit () ,node-2 :bar ((:baz . ?)) ())
-           (:visit () ,node-1 :foo ()           ()))))
+          ((:visit nil  () ,node-2 :bar ((:baz . ?)) ())
+           (:visit :baz () ,node-1 :foo ()           ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                  :relations `(((:baz2 . 1) . (,node-1))))))
         `(,node-2
-          ((:visit () ,node-2 :bar ((:baz2 . 1)) ())
-           (:visit () ,node-1 :foo ()           ()))))
+          ((:visit nil   () ,node-2 :bar ((:baz2 . 1)) ())
+           (:visit :baz2 () ,node-1 :foo ()           ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `(((:baz . *) . ((,node-1)))))))
         `(,node-2
-          ((:visit () ,node-2 :bar ((:baz . *)) ())
-           (:visit () ,node-1 :foo ()           ()))))
+          ((:visit nil  () ,node-2 :bar ((:baz . *)) ())
+           (:visit :baz () ,node-1 :foo ()           ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `(((:baz . (:map . :key))
                                               . ((,node-1 . (:key "foo"))))))))
         `(,node-2
-          ((:visit ()           ,node-2 :bar ((:baz . (:map . :key))) ())
-           (:visit (:key "foo") ,node-1 :foo ()                       ())))))))
+          ((:visit nil  ()           ,node-2 :bar ((:baz . (:map . :key))) ())
+           (:visit :baz (:key "foo") ,node-1 :foo ()                       ())))))))
 
 (test walk-nodes.peeking
   "Test peeking functionality of `walk-nodes[*]' functions."
-
 
   (mapc
    (lambda (case)
@@ -252,73 +251,73 @@
 
    `(,(let ((node (mock-node :foo)))
         `(,node
-          ((:peek  () ,node)
-           (:visit () ,node :foo () ()))))
+          ((:peek  nil () ,node)
+           (:visit nil () ,node :foo () ()))))
 
      ,(let ((node (mock-node :foo :slots '(:a 1))))
         `(,node
-          ((:peek () ,node)
-           (:visit() ,node :foo () (:a 1)))))
+          ((:peek  nil () ,node)
+           (:visit nil () ,node :foo () (:a 1)))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1)))))))
         `(,node-2
-          ((:peek  () ,node-2)
-           (:visit () ,node-2 :bar (:baz) ())
-           (:peek  () ,node-1)
-           (:visit () ,node-1 :foo ()     ()))))
+          ((:peek  nil  () ,node-2)
+           (:visit nil  () ,node-2 :bar (:baz) ())
+           (:peek  :baz () ,node-1)
+           (:visit :baz () ,node-1 :foo ()     ()))))
 
      ,(let* ((node-1 "foo")
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1)))))))
         `(,node-2
-          ((:peek  () ,node-2)
-           (:visit () ,node-2 :bar (:baz) ())
-           (:peek  () ,node-1))))
+          ((:peek  nil  () ,node-2)
+           (:visit nil  () ,node-2 :bar (:baz) ())
+           (:peek  :baz () ,node-1))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1 :b 2)))))))
         `(,node-2
-          ((:peek  ()     ,node-2)
-           (:visit ()     ,node-2 :bar (:baz) ())
-           (:peek  (:b 2) ,node-1)
-           (:visit (:b 2) ,node-1 :foo ()     ()))))
+          ((:peek  nil  ()     ,node-2)
+           (:visit nil  ()     ,node-2 :bar (:baz) ())
+           (:peek  :baz (:b 2) ,node-1)
+           (:visit :baz (:b 2) ,node-1 :foo ()     ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `(((:baz . ?) . (,node-1))))))
         `(,node-2
-          ((:peek  () ,node-2)
-           (:visit () ,node-2 :bar ((:baz . ?)) ())
-           (:peek  () ,node-1)
-           (:visit () ,node-1 :foo ()           ()))))
+          ((:peek  nil  () ,node-2)
+           (:visit nil  () ,node-2 :bar ((:baz . ?)) ())
+           (:peek  :baz () ,node-1)
+           (:visit :baz () ,node-1 :foo ()           ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `(((:baz2 . 1) . (,node-1))))))
         `(,node-2
-          ((:peek  () ,node-2)
-           (:visit () ,node-2 :bar ((:baz2 . 1)) ())
-           (:peek  () ,node-1)
-           (:visit () ,node-1 :foo ()           ()))))
+          ((:peek  nil   () ,node-2)
+           (:visit nil   () ,node-2 :bar ((:baz2 . 1)) ())
+           (:peek  :baz2 () ,node-1)
+           (:visit :baz2 () ,node-1 :foo ()           ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `(((:baz . *) . ((,node-1)))))))
         `(,node-2
-          ((:peek  () ,node-2)
-           (:visit () ,node-2 :bar ((:baz . *)) ())
-           (:peek  () ,node-1)
-           (:visit () ,node-1 :foo ()           ()))))
+          ((:peek  nil  () ,node-2)
+           (:visit nil  () ,node-2 :bar ((:baz . *)) ())
+           (:peek  :baz () ,node-1)
+           (:visit :baz () ,node-1 :foo ()           ()))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `(((:baz . (:map . :key))
                                               . ((,node-1 . (:key "foo"))))))))
         `(,node-2
-          ((:peek  ()           ,node-2)
-           (:visit ()           ,node-2 :bar ((:baz . (:map . :key))) ())
-           (:peek  (:key "foo") ,node-1)
-           (:visit (:key "foo") ,node-1 :foo ()                       ())))))))
+          ((:peek  nil  ()           ,node-2)
+           (:visit nil  ()           ,node-2 :bar ((:baz . (:map . :key))) ())
+           (:peek  :baz (:key "foo") ,node-1)
+           (:visit :baz (:key "foo") ,node-1 :foo ()                       ())))))))

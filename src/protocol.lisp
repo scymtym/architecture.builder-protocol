@@ -281,10 +281,11 @@
 
     The lambda-list of FUNCTION must be compatible to
 
-      (recurse relation-args node kind relations &rest initargs)
+      (recurse relation relation-args node kind relations
+       &rest initargs)
 
-    where RELATION-ARGS are the arguments of the relation connecting
-    NODE to the previously visited node,
+    where RELATION and RELATION-ARGS are the relation and its
+    arguments connecting NODE to the previously visited node,
 
     NODE is the node currently being visited,
 
@@ -312,7 +313,7 @@
     function (also stored in FUNCTION) is called. The lambda-list of
     the \"peeking\" function must be compatible to
 
-      (builder relation-args node)
+      (builder relation relation-args node)
 
     (i.e. it does not receive kind, initargs or relations). This
     function can control whether NODE should be processed normally,
@@ -354,11 +355,10 @@
 (defun %walk-nodes (peeking-function walk-function builder root)
   (labels
       ((walk-node (walk-function builder relation relation-args node)
-         (declare (type function walk-function)
-                  (ignore relation))
+         (declare (type function walk-function))
          (multiple-value-bind (instead kind initargs relations new-builder)
              (if peeking-function
-                 (funcall peeking-function builder relation-args node)
+                 (funcall peeking-function builder relation relation-args node)
                  t)
            (when new-builder
              (setf builder new-builder))
@@ -394,7 +394,7 @@
                                       targets)))))))))
              (declare (dynamic-extent #'recurse))
              (apply walk-function #'recurse
-                    relation-args node kind relations initargs)))))
+                    relation relation-args node kind relations initargs)))))
     (declare (dynamic-extent #'walk-node))
     (walk-node walk-function builder nil '() root)))
 

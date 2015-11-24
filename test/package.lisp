@@ -161,10 +161,10 @@
   (%record-un-build-calls
    builder object
    (lambda (record)
-     (lambda (recurse relation-args node kind relations
+     (lambda (recurse relation relation-args node kind relations
               &rest initargs)
        (funcall record
-                `(:visit ,relation-args ,node ,kind ,relations ,initargs))
+                `(:visit ,relation ,relation-args ,node ,kind ,relations ,initargs))
        (funcall recurse)))))
 
 (defun record-un-build-calls/peeking (builder atom-type object)
@@ -172,12 +172,13 @@
    builder object
    (lambda (record)
      (peeking
-      (lambda (builder relation-args node)
+      (lambda (builder relation relation-args node)
         (declare (ignore builder))
-        (funcall record `(:peek ,relation-args ,node))
+        (funcall record `(:peek ,relation ,relation-args ,node))
         (unless (typep node atom-type)
           t))
-      (lambda (recurse relation-args node kind relations
+      (lambda (recurse relation relation-args node kind relations
                &rest initargs)
-        (funcall record `(:visit ,relation-args ,node ,kind ,relations ,initargs))
+        (funcall record
+                 `(:visit ,relation ,relation-args ,node ,kind ,relations ,initargs))
         (funcall recurse))))))
