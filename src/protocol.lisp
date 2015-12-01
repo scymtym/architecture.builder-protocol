@@ -309,31 +309,39 @@
 
     If FUNCTION is an instance of `peeking', call the \"peeking\"
     function stored in FUNCTION before the ordinary walk
-    function (also stored in FUNCTION) is called. The \"peeking\"
-    function must be compatible to
+    function (also stored in FUNCTION) is called. The lambda-list of
+    the \"peeking\" function must be compatible to
 
       (builder relation-args node)
 
     (i.e. it does not receive kind, initargs or relations). This
     function can control whether NODE should be processed normally,
-    replaced with something else or ignored: Its return values are
-    interpreted as follows:
+    replaced with something else, processed with different builder or
+    ignored: Its return values are interpreted as follows:
 
     NIL
 
       Store processing of NODE, in particular do not call `node-kind',
       `node-relations', `node-initargs' or the walk function for NODE.
 
-    T
+    T [* * * BUILDER]
 
       Continue processing as if there was no \"peeking\" function.
 
-    INSTEAD KIND INITARGS RELATIONS (four values)
+      If non-NIL, BUILDER specifies a builder that should be used
+      instead of the current builder to process the current node and
+      its ancestors.
+
+    INSTEAD KIND INITARGS RELATIONS [BUILDER]
 
       Continue processing as if NODE had been replaced by INSTEAD and
       builder had returned KIND, INITARGS and RELATIONS. In particular
       do not call `node-kind', `node-relations', `node-initargs' for
       NODE.
+
+      If non-NIL, BUILDER specifies a builder that should be used
+      instead of the current builder to process INSTEAD and its
+      ancestors.
 
     Depending on FUNCTION, potentially return a list-of-lists of the
     same shape as the traversed tree containing return values of
@@ -348,10 +356,12 @@
       ((walk-node (walk-function builder relation relation-args node)
          (declare (type function walk-function)
                   (ignore relation))
-         (multiple-value-bind (instead kind initargs relations)
+         (multiple-value-bind (instead kind initargs relations new-builder)
              (if peeking-function
                  (funcall peeking-function builder relation-args node)
                  t)
+           (when new-builder
+             (setf builder new-builder))
            (case instead
              ((nil)
               (return-from walk-node))
