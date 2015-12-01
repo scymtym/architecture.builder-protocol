@@ -207,6 +207,7 @@
 ;;; constructed by BUILDER.
 
 (defgeneric node-kind (builder node)
+  (:argument-precedence-order node builder)
   (:documentation
    "Return the kind of NODE w.r.t. BUILDER.
 
@@ -214,6 +215,7 @@
     with BUILDER."))
 
 (defgeneric node-initargs (builder node)
+  (:argument-precedence-order node builder)
   (:documentation
    "Return a plist of initargs for NODE w.r.t. BUILDER.
 
@@ -221,6 +223,7 @@
     to the MAKE-NODE call that, using BUILDER, constructed NODE."))
 
 (defgeneric node-relations (builder node)
+  (:argument-precedence-order node builder)
   (:documentation
    "Return a list of relations of NODE w.r.t. BUILDER.
 
@@ -247,6 +250,7 @@
     of (node-relation BUILDER RELATION-NAME NODE)."))
 
 (defgeneric node-relation (builder relation node)
+  (:argument-precedence-order relation node builder)
   (:documentation
    "Return two values: 1) a list nodes related to NODE via RELATION
     w.r.t. BUILDER 2) a same-length list of arguments of the relations.
