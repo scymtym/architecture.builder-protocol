@@ -345,8 +345,9 @@
                 %walk-nodes))
 (defun %walk-nodes (peeking-function walk-function builder root)
   (labels
-      ((walk-node (walk-function relation-args node)
-         (declare (type function walk-function))
+      ((walk-node (walk-function builder relation relation-args node)
+         (declare (type function walk-function)
+                  (ignore relation))
          (multiple-value-bind (instead kind initargs relations)
              (if peeking-function
                  (funcall peeking-function builder relation-args node)
@@ -369,19 +370,23 @@
                            (cardinality-ecase cardinality
                              (?
                               (when targets
-                                (walk-node function args targets)))
+                                (walk-node function builder
+                                           relation args targets)))
                              (1
-                              (walk-node function args targets))
+                              (walk-node function builder
+                                         relation args targets))
                              ((* :map)
                               (when targets
-                                (mapc (curry #'walk-node function)
-                                      (or args (circular-list '()))
+                                (mapc (curry #'walk-node
+                                             function builder relation)
+                                      (or args (load-time-value
+                                                (circular-list '()) t))
                                       targets)))))))))
              (declare (dynamic-extent #'recurse))
              (apply walk-function #'recurse
                     relation-args node kind relations initargs)))))
     (declare (dynamic-extent #'walk-node))
-    (walk-node walk-function '() root)))
+    (walk-node walk-function builder nil '() root)))
 
 (defmethod walk-nodes ((builder t) (function t) (root t))
   (walk-nodes (coerce function 'function) builder root))
