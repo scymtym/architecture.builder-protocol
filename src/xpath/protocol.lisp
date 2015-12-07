@@ -42,7 +42,7 @@
 ;;;;     </baz>
 ;;;;   </cl:+>
 
-(defgeneric evaluate (xpath builder tree)
+(defgeneric evaluate (xpath builder tree &key printers)
   (:documentation
    "Evaluate XPATH on TREE using BUILDER in the XPath adapter.
 
@@ -50,12 +50,43 @@
     i.e. an XPath expression string or a compiled representation.
 
     BUILDER has to provide the \"un-build\" protocol for all nodes in
-    TREE."))
+    TREE.
+
+    PRINTERS, when supplied, has to be a list of elements of the form
+
+      (PREDICATE . PRINTER)
+
+    where PREDICATE is a function that, when called with a value as
+    the sole argument, returns a Boolean indicating whether PRINTER
+    should be used to render the value as a string. The lambda-list of
+    PRINTER must be compatible to
+
+      (BUILDER VALUE)
+
+    where BUILDER is the builder stored in NAVIGATOR and VALUE is a
+    value extracted from THING such as the value of a valued proxy
+    node. The function must return a string representation of
+    VALUE."))
+
+(defgeneric find-printer (thing navigator)
+  (:documentation
+   "Find and return a print function for THING in NAVIGATOR.
+
+    The lambda-list of the returned function must be compatible to
+
+      (BUILDER VALUE)
+
+    where BUILDER is the builder stored in NAVIGATOR and VALUE is a
+    value extracted from THING such as the value of a valued proxy
+    node. The function must return a string representation of
+    VALUE."))
 
 ;; Default behavior
 
-(defmethod evaluate ((xpath t) (builder t) (tree t) )
-  (let ((navigator (make-instance 'navigator :builder builder)))
+(defmethod evaluate ((xpath t) (builder t) (tree t) &key printers)
+  (let ((navigator (make-instance 'navigator
+                                  :builder  builder
+                                  :printers printers)))
     (evaluate-using-navigator xpath tree navigator)))
 
 (defun evaluate-using-navigator (xpath tree navigator)

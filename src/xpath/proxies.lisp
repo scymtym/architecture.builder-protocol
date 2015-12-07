@@ -91,10 +91,16 @@
                                       (proxy     valued-proxy))
   (let ((value (valued-proxy-value proxy)))
     (cond
+      ((when-let ((printer (find-printer proxy navigator)))
+         (locally (declare (type function printer))
+           (funcall printer (navigator-builder navigator) value))))
       ((stringp value)
        value)
       (t
        (princ-to-string value)))))
+
+(defmethod find-printer ((thing valued-proxy) (navigator navigator))
+  (find-printer (valued-proxy-value thing) navigator))
 
 ;;; `node-poxy' class
 ;;;

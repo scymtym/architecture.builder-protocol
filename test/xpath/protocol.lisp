@@ -115,3 +115,45 @@
      ("string(@bar)" (:foo () :bar 1)                "1")
      ("string(@bar)" (:foo () :bar "a")              "a")
      ("string(*)"    (:foo ((:bar . 1) ((:baz ())))) ""))))
+
+(test evaluate.printers
+  "Test specifying print functions for certain nodes."
+
+  (labels ((thing-of-type (type)
+             (lambda (builder thing)
+               (declare (ignore builder))
+               (typep thing type)))
+           (print-thing-as (type format-control)
+             (cons (thing-of-type type)
+                   (lambda (builder thing)
+                     (declare (ignore builder))
+                     (format nil format-control thing))))
+           (evaluate/unwrap (xpath document &rest args)
+             (let ((navigator (apply #'make-instance 'navigator
+                                     :builder 'list args)))
+               (unwrap navigator (evaluate-using-navigator
+                                  xpath document navigator))))
+           (test-case (xpath document args expected)
+             (is (equal expected (apply #'evaluate/unwrap xpath document args)))))
+    (let ((document-2 '(:foo (:bar (((:fez () :baz :who)))))))
+      (mapcar
+       (curry #'apply #'test-case)
+       `(,(let ((document '(:foo ())))
+            `("." ,document () ,(list document)))
+
+          ("bar/fez"
+           (:foo (:bar (((:fez ())))))
+           ()
+           ((:fez nil)))
+
+          ("string(bar/fez)"
+           ,document-2
+           (:printers ,(list (print-thing-as '(eql :who) "<~A>")
+                             (print-thing-as '(cons (eql :fez)) "<~A>")))
+           "<(FEZ NIL BAZ WHO)>")
+
+          ("string(bar/fez/@baz)"
+           ,document-2
+           (:printers ,(list (print-thing-as '(eql :who) "[~A]")
+                             (print-thing-as '(cons (eql :fez)) "<~A>")))
+           "[WHO]"))))))

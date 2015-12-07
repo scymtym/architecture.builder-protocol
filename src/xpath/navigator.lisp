@@ -15,13 +15,42 @@
              :reader   navigator-builder
              :documentation
              "Stores the builder that should be used for determining
-              node kinds, initargs and relations."))
+              node kinds, initargs and relations.")
+   (printers :type     list
+             :accessor navigator-%printers
+             :initform '()
+             :documentation
+             "A list of entries of the form
+
+                (PREDICATE . PRINTER)
+
+              where PREDICATE can be called on a value to determine
+              whether PRINTER should be used to construct a textual
+              representation of the value."))
   (:default-initargs
    :builder (required-argument :builder))
   (:documentation
    "An XPath \"navigator\" class for evaluating XPath expressions on
     tree structures for which an builder with a corresponding
     implementation of the un-build protocol is available."))
+
+(defun prepare-printers (printers)
+  (mapcar (lambda (cell)
+            (cons (ensure-function (car cell))
+                  (ensure-function (cdr cell))))
+          printers))
+
+(defmethod shared-initialize :after ((instance navigator) (slot-names t)
+                                     &key
+                                     (printers nil printers-supplied?))
+  (when printers-supplied?
+    (setf (navigator-%printers instance) (prepare-printers printers))))
+
+(defmethod find-printer ((thing t) (navigator navigator))
+  (let ((builder (navigator-builder navigator)))
+    (cdr (find-if (lambda (cell)
+                    (funcall (the function (car cell)) builder thing))
+                  (navigator-%printers navigator)))))
 
 ;; Default behavior
 
