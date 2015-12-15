@@ -250,7 +250,7 @@
     of (node-relation BUILDER RELATION-NAME NODE)."))
 
 (defgeneric node-relation (builder relation node)
-  (:argument-precedence-order relation node builder)
+  (:argument-precedence-order node relation builder)
   (:documentation
    "Return two values: 1) a list nodes related to NODE via RELATION
     w.r.t. BUILDER 2) a same-length list of arguments of the relations.
