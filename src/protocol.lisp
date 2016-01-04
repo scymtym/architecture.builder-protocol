@@ -428,7 +428,7 @@
     (walk-node walk-function builder nil '() root)))
 
 (defmethod walk-nodes ((builder t) (function t) (root t))
-  (walk-nodes (coerce function 'function) builder root))
+  (walk-nodes (ensure-function function) builder root))
 
 (defmethod walk-nodes ((builder t) (function function) (root t))
   (%walk-nodes nil function builder root))
