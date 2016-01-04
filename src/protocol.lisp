@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -68,12 +68,13 @@
     THUNK."))
 
 (defgeneric make-node (builder kind &rest initargs ; TODO rename initargs?
-                       &key bounds &allow-other-keys)
+                       &key &allow-other-keys)
   (:documentation
    "Use BUILDER to make a result tree node of kind KIND and return it.
 
-    When supplied, BOUNDS is of the form (START . END) and can be used
-    to indicate the input range for which the tree is constructed."))
+    As a convention, when supplied, the value of the :bounds keyword
+    argument is of the form (START . END) and can be used to indicate
+    the input range for which the tree is constructed."))
 
 (defgeneric finish-node (builder kind node)
   (:documentation
@@ -124,10 +125,9 @@
 ;;; Convenience functions
 
 (defun make+finish-node (builder kind &rest initargs
-                         &key bounds &allow-other-keys)
+                         &key &allow-other-keys)
   "Convenience function for constructing and immediately finishing a
    node."
-  (declare (ignore bounds))
   (finish-node builder kind (apply #'make-node builder kind initargs)))
 
 (defun make+finish-node+relations (builder kind initargs relations)
