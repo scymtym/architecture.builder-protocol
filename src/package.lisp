@@ -28,6 +28,7 @@
    #:finish-node                #:finish-node*
    #:relate                     #:relate*
 
+   #:add-relations              #:add-relations*
    #:make+finish-node           #:make+finish-node*
    #:make+finish-node+relations #:make+finish-node+relations*)
 

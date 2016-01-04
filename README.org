@@ -294,6 +294,42 @@
 #+end_example
 *** STARTED Convenience Functions
     #+BEGIN_SRC lisp :exports results :session "doc"
+      (doc 'architecture.builder-protocol:add-relations 'function)
+    #+END_SRC
+
+    #+RESULTS:
+    #+begin_example
+    add-relations BUILDER NODE RELATIONS
+
+    Use BUILDER to add relations according to RELATIONS to NODE.
+
+    RELATIONS is a list of relation specifications of the form
+
+    (CARDINALITY RELATION-NAME RIGHT &rest ARGS)
+
+    which are translated into `relate' calls in which NODE is the
+    "left" argument to `relate'. CARDINALITY has to be of type
+    `relation-cardinality' and is interpreted as follows:
+
+    ?            RIGHT is a single node or nil.
+
+    1            RIGHT is a single node.
+
+    *            RIGHT is a (possibly empty) sequence of nodes.
+
+    (:map . KEY) RIGHT is a single node that should be associated to
+    the mapping key that is the value of KEY in the ARGS
+    plist for RIGHT.
+
+    RELATION-NAME does not have to be unique across the elements of
+    RELATIONS. This allows multiple "right" nodes to be related to
+    NODE via a given RELATION-NAME with CARDINALITY * in multiple
+    RELATIONS entries, potentially with different ARGS.
+
+    The modified NODE or a new node is returned.
+#+end_example
+
+    #+BEGIN_SRC lisp :exports results :session "doc"
       (doc 'architecture.builder-protocol:make+finish-node 'function)
     #+END_SRC
 
@@ -308,37 +344,14 @@
     #+END_SRC
 
     #+RESULTS:
-    #+begin_example
-    make+finish-node+relations BUILDER KIND INITARGS RELATIONS
-
-    Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
-
-    RELATIONS is a list of relation specifications of the form
-
-    (CARDINALITY RELATION-KIND RIGHT &rest ARGS)
-
-    which are translated into `relate' calls in which the created node
-    is the "left" argument to `relate'. CARDINALITY has to be of type
-    `relation-cardinality' and is interpreted as follows:
-
-    ?            RIGHT is a single node or nil.
-
-    1            RIGHT is a single node.
-
-    *            RIGHT is a (possibly empty) sequence of nodes.
-
-    (:map . KEY) RIGHT is a single node that should be associated to
-    the mapping key that is the value of KEY in the ARGS
-    plist for RIGHT.
-
-    RELATION-KIND does not have to be unique across the elements of
-    RELATIONS. This allows multiple "right" nodes to be related to
-    LEFT via a given RELATION-KIND with CARDINALITY * in multiple
-    RELATIONS entries, potentially with different ARGS.
-
-    `finish-node' is called on the created node. The created node is
-    returned.
-#+end_example
+    : make+finish-node+relations BUILDER KIND INITARGS RELATIONS
+    :
+    : Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
+    :
+    : RELATIONS is processed as described for `add-relations'.
+    :
+    : `finish-node' is called on the created node. The created node is
+    : returned.
 
 ** STARTED "Un-build" Protocol
    #+begin_src lisp :exports results :session "doc"

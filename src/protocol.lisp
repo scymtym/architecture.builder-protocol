@@ -132,21 +132,15 @@
 
 ;;; Convenience functions
 
-(defun make+finish-node (builder kind &rest initargs
-                         &key &allow-other-keys)
-  "Convenience function for constructing and immediately finishing a
-   node."
-  (finish-node builder kind (apply #'make-node builder kind initargs)))
-
-(defun make+finish-node+relations (builder kind initargs relations)
-  "Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
+(defun add-relations (builder node relations)
+  "Use BUILDER to add relations according to RELATIONS to NODE.
 
    RELATIONS is a list of relation specifications of the form
 
-     (CARDINALITY RELATION-KIND RIGHT &rest ARGS)
+     (CARDINALITY RELATION-NAME RIGHT &rest ARGS)
 
-   which are translated into `relate' calls in which the created node
-   is the \"left\" argument to `relate'. CARDINALITY has to be of type
+   which are translated into `relate' calls in which NODE is the
+   \"left\" argument to `relate'. CARDINALITY has to be of type
    `relation-cardinality' and is interpreted as follows:
 
    ?            RIGHT is a single node or nil.
@@ -159,37 +153,50 @@
                 the mapping key that is the value of KEY in the ARGS
                 plist for RIGHT.
 
-   RELATION-KIND does not have to be unique across the elements of
+   RELATION-NAME does not have to be unique across the elements of
    RELATIONS. This allows multiple \"right\" nodes to be related to
-   LEFT via a given RELATION-KIND with CARDINALITY * in multiple
+   NODE via a given RELATION-NAME with CARDINALITY * in multiple
    RELATIONS entries, potentially with different ARGS.
 
-   `finish-node' is called on the created node. The created node is
-   returned."
-  (labels ((add-relation/one (left relation right args)
+   The modified NODE or a new node is returned."
+  (labels ((add-relation/one (relation left right args)
              (apply #'relate builder relation left right args))
-           (add-relation/sequence (left relation right args)
+           (add-relation/sequence (relation left right args)
              (reduce (lambda (left right)
                        (apply #'relate builder relation left right args))
                      right :initial-value left))
-           (add-relations (left relations)
-             (reduce (lambda (left spec)
-                       (destructuring-bind (cardinality relation right &rest args) spec
-                         (cardinality-ecase cardinality
-                           ((1 ?)
-                            (add-relation/one left relation right args))
-                           (*
-                            (add-relation/sequence left relation right args))
-                           ((:map key)
-                            (unless (getf args key)
-                              (error "~@<~S key ~S is missing in ~
-                                      relation arguments ~S.~@:>"
-                                     :map key args))
-                            (add-relation/one left relation right args)))))
-                     relations :initial-value left)))
-    (finish-node
-     builder kind
-     (add-relations (apply #'make-node builder kind initargs) relations))))
+           (add-relation (left spec)
+             (destructuring-bind (cardinality relation right &rest args) spec
+               (cardinality-ecase cardinality
+                 ((1 ?)
+                  (add-relation/one relation left right args))
+                 (*
+                  (add-relation/sequence relation left right args))
+                 ((:map key)
+                  (unless (getf args key)
+                    (error "~@<~S key ~S is missing in relation ~
+                            arguments ~S.~@:>"
+                           :map key args))
+                  (add-relation/one relation left right args))))))
+    (reduce #'add-relation relations :initial-value node)))
+
+(defun make+finish-node (builder kind &rest initargs
+                         &key &allow-other-keys)
+  "Convenience function for constructing and immediately finishing a
+   node."
+  (finish-node builder kind (apply #'make-node builder kind initargs)))
+
+(defun make+finish-node+relations (builder kind initargs relations)
+  "Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
+
+   RELATIONS is processed as described for `add-relations'.
+
+   `finish-node' is called on the created node. The created node is
+   returned."
+  (finish-node
+   builder kind
+   (add-relations
+    builder (apply #'make-node builder kind initargs) relations)))
 
 ;;; "Un-build" protocol
 ;;;
@@ -470,6 +477,7 @@
   (define-abbreviation relate (relation left right
                                &rest args &key &allow-other-keys))
 
+  (define-abbreviation add-relations (node relations))
   (define-abbreviation make+finish-node (node &rest initargs
                                          &key &allow-other-keys))
   (define-abbreviation make+finish-node+relations (kind initargs relations))

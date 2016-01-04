@@ -103,6 +103,37 @@
                 (relate builder :baz (mock-node :foo) (mock-node :bar)
                         :fez 2)))))
 
+(test add-relations.smoke
+  "Smoke test for `add-relations[*]' functions."
+
+  (with-implicit-and-explicit-builder
+      (builder (make-instance 'mock-builder))
+      add-relations
+    (is (equalp (mock-node :foo :finished? nil)
+                (add-relations builder (mock-node :foo) '())))
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz))) )
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) `((1 :fez ,(mock-node :baz))))))
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz))))
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) `((* :fez (,(mock-node :baz)))))))
+    ;; :map cardinality.
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz) :who 1)))
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) `(((:map . :who) :fez ,(mock-node :baz)
+                                             :who 1)))))
+    ;; :map cardinality requires key to be present as relation
+    ;; argument.
+    (signals error
+      (add-relations
+       builder (mock-node :foo) `(((:map . :who) :fez ,(mock-node :baz)))))))
+
 (test make+finish-node+relations.smoke
   "Smoke test for the `make+finish-node+relations[*]' functions."
 
