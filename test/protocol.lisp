@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Unit tests for the protocol of the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -183,23 +183,29 @@
 
   (mapc
    (lambda (case)
-     (destructuring-bind (tree expected) case
+     (destructuring-bind (tree expected-values expected-calls) case
        (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
            walk-nodes
-         (is (equal expected (record-un-build-calls #'walk-nodes builder tree))))))
+         (multiple-value-bind (values calls)
+             (record-un-build-calls #'walk-nodes builder tree)
+           (is (equal expected-values values))
+           (is (equal expected-calls calls))))))
 
    `(,(let ((node (mock-node :foo)))
         `(,node
+          (:foo)
           ((:visit nil () ,node :foo () ()))))
 
      ,(let ((node (mock-node :foo :slots '(:a 1))))
         `(,node
+          (:foo)
           ((:visit nil () ,node :foo () (:a 1)))))
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1)))))))
         `(,node-2
+          (((:foo)))
           ((:visit nil  () ,node-2 :bar (:baz) ())
            (:visit :baz () ,node-1 :foo ()     ()))))
 
@@ -207,6 +213,7 @@
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1 :b 2)))))))
         `(,node-2
+          (((:foo)))
           ((:visit nil  ()     ,node-2 :bar (:baz) ())
            (:visit :baz (:b 2) ,node-1 :foo ()     ()))))
 
@@ -214,6 +221,7 @@
              (node-2 (mock-node :bar
                                 :relations `(((:baz . ?) . (,node-1))))))
         `(,node-2
+          ((:foo))
           ((:visit nil  () ,node-2 :bar ((:baz . ?)) ())
            (:visit :baz () ,node-1 :foo ()           ()))))
 
@@ -221,6 +229,7 @@
              (node-2 (mock-node :bar
                                  :relations `(((:baz2 . 1) . (,node-1))))))
         `(,node-2
+          ((:foo))
           ((:visit nil   () ,node-2 :bar ((:baz2 . 1)) ())
            (:visit :baz2 () ,node-1 :foo ()           ()))))
 
@@ -228,6 +237,7 @@
              (node-2 (mock-node :bar
                                 :relations `(((:baz . *) . ((,node-1)))))))
         `(,node-2
+          (((:foo)))
           ((:visit nil  () ,node-2 :bar ((:baz . *)) ())
            (:visit :baz () ,node-1 :foo ()           ()))))
 
@@ -236,6 +246,7 @@
                                 :relations `(((:baz . (:map . :key))
                                               . ((,node-1 . (:key "foo"))))))))
         `(,node-2
+          (((:foo)))
           ((:visit nil  ()           ,node-2 :bar ((:baz . (:map . :key))) ())
            (:visit :baz (:key "foo") ,node-1 :foo ()                       ())))))))
 
@@ -244,18 +255,23 @@
 
   (mapc
    (lambda (case)
-     (destructuring-bind (tree expected) case
+     (destructuring-bind (tree expected-result expected-calls) case
        (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
            walk-nodes
-         (is (equal expected (record-un-build-calls/peeking #'walk-nodes builder 'string tree))))))
+         (multiple-value-bind (result calls)
+             (record-un-build-calls/peeking #'walk-nodes builder 'string tree)
+           (is (equal expected-result result))
+           (is (equal expected-calls  calls))))))
 
    `(,(let ((node (mock-node :foo)))
         `(,node
+          (:foo)
           ((:peek  nil () ,node)
            (:visit nil () ,node :foo () ()))))
 
      ,(let ((node (mock-node :foo :slots '(:a 1))))
         `(,node
+          (:foo)
           ((:peek  nil () ,node)
            (:visit nil () ,node :foo () (:a 1)))))
 
@@ -263,6 +279,7 @@
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1)))))))
         `(,node-2
+          (((:foo)))
           ((:peek  nil  () ,node-2)
            (:visit nil  () ,node-2 :bar (:baz) ())
            (:peek  :baz () ,node-1)
@@ -272,6 +289,7 @@
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1)))))))
         `(,node-2
+          (((nil)))
           ((:peek  nil  () ,node-2)
            (:visit nil  () ,node-2 :bar (:baz) ())
            (:peek  :baz () ,node-1))))
@@ -280,6 +298,7 @@
              (node-2 (mock-node :bar
                                 :relations `((:baz . ((,node-1 :b 2)))))))
         `(,node-2
+          (((:foo)))
           ((:peek  nil  ()     ,node-2)
            (:visit nil  ()     ,node-2 :bar (:baz) ())
            (:peek  :baz (:b 2) ,node-1)
@@ -289,6 +308,7 @@
              (node-2 (mock-node :bar
                                 :relations `(((:baz . ?) . (,node-1))))))
         `(,node-2
+          ((:foo))
           ((:peek  nil  () ,node-2)
            (:visit nil  () ,node-2 :bar ((:baz . ?)) ())
            (:peek  :baz () ,node-1)
@@ -298,6 +318,7 @@
              (node-2 (mock-node :bar
                                 :relations `(((:baz2 . 1) . (,node-1))))))
         `(,node-2
+          ((:foo))
           ((:peek  nil   () ,node-2)
            (:visit nil   () ,node-2 :bar ((:baz2 . 1)) ())
            (:peek  :baz2 () ,node-1)
@@ -307,6 +328,7 @@
              (node-2 (mock-node :bar
                                 :relations `(((:baz . *) . ((,node-1)))))))
         `(,node-2
+          (((:foo)))
           ((:peek  nil  () ,node-2)
            (:visit nil  () ,node-2 :bar ((:baz . *)) ())
            (:peek  :baz () ,node-1)
@@ -317,6 +339,7 @@
                                 :relations `(((:baz . (:map . :key))
                                               . ((,node-1 . (:key "foo"))))))))
         `(,node-2
+          (((:foo)))
           ((:peek  nil  ()           ,node-2)
            (:visit nil  ()           ,node-2 :bar ((:baz . (:map . :key))) ())
            (:peek  :baz (:key "foo") ,node-1)

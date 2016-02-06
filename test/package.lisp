@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for unit tests of the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -152,9 +152,11 @@
 
 (defun %record-un-build-calls (walk-nodes builder object make-function)
   (let ((calls '()))
-    (flet ((record (call) (push call calls)))
-      (funcall walk-nodes builder (funcall make-function #'record) object))
-    (nreverse calls)))
+    (values
+     (multiple-value-list
+      (flet ((record (call) (push call calls)))
+        (funcall walk-nodes builder (funcall make-function #'record) object)))
+     (nreverse calls))))
 
 (defun record-un-build-calls (walk-nodes builder object)
   (%record-un-build-calls
@@ -164,7 +166,7 @@
               &rest initargs)
        (funcall record
                 `(:visit ,relation ,relation-args ,node ,kind ,relations ,initargs))
-       (funcall recurse)))))
+       (or (funcall recurse) kind)))))
 
 (defun record-un-build-calls/peeking (walk-nodes builder atom-type object)
   (%record-un-build-calls
@@ -180,4 +182,4 @@
                &rest initargs)
         (funcall record
                  `(:visit ,relation ,relation-args ,node ,kind ,relations ,initargs))
-        (funcall recurse))))))
+        (or (funcall recurse) kind))))))
