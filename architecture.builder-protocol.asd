@@ -78,4 +78,4 @@
 
 (defmethod perform ((op        test-op)
                     (component (eql (find-system :architecture.builder-protocol-test))))
-  (funcall (read-from-string "architecture.builder-protocol.test:run-tests")))
+  (uiop:symbol-call '#:architecture.builder-protocol.test '#:run-tests))
