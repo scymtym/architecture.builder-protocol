@@ -12,6 +12,11 @@
 
    #:architecture.builder-protocol)
 
+  (:import-from #:architecture.builder-protocol
+   #:make-delayed-node
+   #:delayed-node-relations
+   #:make-delayed-relation)
+
   (:export
    #:run-tests)
 

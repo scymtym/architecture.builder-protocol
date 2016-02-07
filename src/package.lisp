@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -56,6 +56,16 @@
   (:export
    #:call-with-unbuilder
    #:with-unbuilder)
+
+  ;; `delaying-mixin'
+  (:export
+   #:delaying-mixin)
+
+  ;; `order-forcing-mixin'
+  (:export
+   #:builder-visit-function
+
+   #:order-forcing-mixin)
 
   ;; `top-down-forcing-builder'
   (:export

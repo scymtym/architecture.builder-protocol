@@ -20,6 +20,7 @@
                               (:file       "protocol")
                               (:file       "macros")
 
+                              (:file       "mixins")
                               (:file       "list-builder")
                               (:file       "top-down-forcing-builder"))))
   :in-order-to ((test-op (test-op :architecture.builder-protocol-test))))
@@ -41,6 +42,7 @@
                               (:file       "protocol")
                               (:file       "macros")
 
+                              (:file       "mixins")
                               (:file       "list-builder")
                               (:file       "top-down-forcing-builder")))))
 

@@ -488,3 +488,12 @@
   (define-abbreviation node-relation (relation node))
 
   (define-abbreviation walk-nodes (function root)))
+
+;;; Order forcing builder protocol
+
+(defgeneric builder-visit-function (builder)
+  (:documentation
+   "Return a function to apply to the delayed nodes constructed by BUILDER.
+
+    The function is called with the root of the tree of
+    `delayed-node's."))
