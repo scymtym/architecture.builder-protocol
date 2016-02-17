@@ -186,7 +186,7 @@
      (destructuring-bind (tree expected) case
        (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
            walk-nodes
-         (is (equal expected (record-un-build-calls builder tree))))))
+         (is (equal expected (record-un-build-calls #'walk-nodes builder tree))))))
 
    `(,(let ((node (mock-node :foo)))
         `(,node
@@ -198,7 +198,7 @@
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
-                                 :relations `((:baz . ((,node-1)))))))
+                                :relations `((:baz . ((,node-1)))))))
         `(,node-2
           ((:visit nil  () ,node-2 :bar (:baz) ())
            (:visit :baz () ,node-1 :foo ()     ()))))
@@ -247,7 +247,7 @@
      (destructuring-bind (tree expected) case
        (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
            walk-nodes
-         (is (equal expected (record-un-build-calls/peeking builder 'string tree))))))
+         (is (equal expected (record-un-build-calls/peeking #'walk-nodes builder 'string tree))))))
 
    `(,(let ((node (mock-node :foo)))
         `(,node

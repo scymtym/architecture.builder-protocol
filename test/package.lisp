@@ -150,16 +150,15 @@
 
 ;;; "Un-build"-related test utilities
 
-(defun %record-un-build-calls (builder object make-function)
+(defun %record-un-build-calls (walk-nodes builder object make-function)
   (let ((calls '()))
     (flet ((record (call) (push call calls)))
-      (with-unbuilder (builder)
-        (walk-nodes* (funcall make-function #'record) object)))
+      (funcall walk-nodes builder (funcall make-function #'record) object))
     (nreverse calls)))
 
-(defun record-un-build-calls (builder object)
+(defun record-un-build-calls (walk-nodes builder object)
   (%record-un-build-calls
-   builder object
+   walk-nodes builder object
    (lambda (record)
      (lambda (recurse relation relation-args node kind relations
               &rest initargs)
@@ -167,9 +166,9 @@
                 `(:visit ,relation ,relation-args ,node ,kind ,relations ,initargs))
        (funcall recurse)))))
 
-(defun record-un-build-calls/peeking (builder atom-type object)
+(defun record-un-build-calls/peeking (walk-nodes builder atom-type object)
   (%record-un-build-calls
-   builder object
+   walk-nodes builder object
    (lambda (record)
      (peeking
       (lambda (builder relation relation-args node)
