@@ -1,6 +1,6 @@
 ;;;; list-builder.lisp --- Represents constructed results as nested lists.
 ;;;;
-;;;; Copyright (C) 2014, 2015 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -73,7 +73,24 @@
   (loop :for (key) :on (second node) :by #'cddr :collect key))
 
 (defmethod node-relation ((builder (eql 'list)) (relation t) (node cons))
-  (let ((entries (loop :for (key entries) :on (second node) :do
-                    (when (eq relation (normalize-relation key))
-                      (return entries)))))
-    (values (mapcar #'car entries) (mapcar #'cdr entries))))
+  (multiple-value-bind (cardinality entries)
+      (loop :for (key entries) :on (second node) :by #'cddr :do
+         (cond
+           ((and (consp key) (consp relation))
+            (when (equal key relation)
+              (return (values (cdr key) entries))))
+           ((consp key)
+            (when (eq (car key) relation)
+              (return (values (cdr key) entries))))
+           ((consp relation)
+            (when (eq key (car relation))
+              (return (values '* entries))))
+           (t
+            (when (eq key relation)
+              (return (values '* entries))))))
+    (when entries
+      (case cardinality
+        ((1 ?)
+         (values (car entries) (cdr entries)))
+        (t
+         (values (mapcar #'car entries) (mapcar #'cdr entries)))))))

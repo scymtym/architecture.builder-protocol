@@ -1,6 +1,6 @@
 ;;;; list-builder.lisp --- Unit tests for the list-builder.
 ;;;;
-;;;; Copyright (C) 2015 Jan Moringen
+;;;; Copyright (C) 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -93,15 +93,23 @@
            (is (equal expected (multiple-value-list
                                 (node-relation 'list relation node))))))
     ;; No relations.
-    (do-it '(:foo ())        :baz '(() ()))
-    (do-it '(:foo () :bar 1) :baz '(() ()))
+    (do-it '(:foo ())        :baz '(()))
+    (do-it '(:foo () :bar 1) :baz '(()))
     ;; One relation.
-    (let* ((node-2 '(:fez ()))
-           (node-1 `(:foo (:baz ((,node-2 . (:who 2)))))))
-      (do-it node-1 :baz `((,node-2) ((:who 2)))))
+    (let* ((node-3 '(:fez ()))
+           (node-2 `(:foo (:baz       ((,node-3 . (:who 2))))))
+           (node-1 `(:foo ((:baz . 1) (,node-3 . (:who 2))))))
+      (do-it node-2 :baz        `((,node-3) ((:who 2))))
+      (do-it node-2 '(:baz . *) `((,node-3) ((:who 2))))
+      (do-it node-2 '(:fez . 1) '(()))
+      (do-it node-1 :baz        `(,node-3 (:who 2)))
+      (do-it node-1 '(:baz . 1) `(,node-3 (:who 2)))
+      (do-it node-1 '(:fez . 1) '(())))
     ;; Multiple relations
     (let* ((node-3 '(:arp ()))
            (node-2 '(:fez ()))
-           (node-1 `(:foo (:baz ((,node-2 . (:who 2))) :dot ((,node-3 . (:dat 3)))))))
+           (node-1 `(:foo (:baz ((,node-2 . (:who 2)))
+                           :dot ((,node-3 . (:dat 3)))))))
       (do-it node-1 :baz `((,node-2) ((:who 2))))
-      (do-it node-1 :dot `((,node-3) ((:dat 3)))))))
+      (do-it node-1 :dot `((,node-3) ((:dat 3))))
+      (do-it node-1 :fez '(())))))
