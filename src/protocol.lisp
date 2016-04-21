@@ -11,11 +11,19 @@
 (deftype relation-cardinality ()
   "Cardinality of a relation between nodes.
 
-   ? Zero or one \"right\" nodes can be related to the \"left\" node.
+   ?            Zero or one \"right\" nodes can be related to the
+                \"left\" node.
 
-   1 Exactly one \"right\" node is related to the \"left\" node.
+   1            Exactly one \"right\" node is related to the \"left\"
+                node.
 
-   * Zero or more \"right\" nodes can be related to the \"left\" node.
+   *            Zero or more \"right\" nodes can be related to the
+                \"left\" node.
+
+   (:map . KEY) Zero or more \"right\" nodes can be related to the
+                left node with the additional constraint that the
+                relation parameters for each such node must contain a
+                unique value for the key KEY.
 
    See `relate' for \"left\" and \"right\" node roles."
   '(or (member ? 1 *) (cons (eql :map))))
@@ -141,15 +149,15 @@
    is the \"left\" argument to `relate'. CARDINALITY has to be of type
    `relation-cardinality' and is interpreted as follows:
 
-     ?            -> RIGHT is a single node or nil.
+   ?            RIGHT is a single node or nil.
 
-     1            -> RIGHT is a single node.
+   1            RIGHT is a single node.
 
-     *            -> RIGHT is a (possibly empty) sequence of nodes.
+   *            RIGHT is a (possibly empty) sequence of nodes.
 
-     (:map . KEY) -> RIGHT is a single node that should be associated
-                     to the mapping key that is the value of KEY in
-                     the ARGS plist for RIGHT.
+   (:map . KEY) RIGHT is a single node that should be associated to
+                the mapping key that is the value of KEY in the ARGS
+                plist for RIGHT.
 
    RELATION-KIND does not have to be unique across the elements of
    RELATIONS. This allows multiple \"right\" nodes to be related to
@@ -237,14 +245,23 @@
     i.e. CARDINALITY is not present, it is assumed to be
     `*'. CARDINALITY values are interpreted as follows:
 
-      ? -> The relation designated by RELATION-NAME with NODE as the
-           \"left\" node has zero or one \"right\" nodes.
+      ?            The relation designated by RELATION-NAME with NODE
+                   as the \"left\" node has zero or one \"right\"
+                   nodes.
 
-      1 -> The relation designated by RELATION-NAME with NODE as the
-           \"left\" node has exactly one \"right\" node.
+      1            The relation designated by RELATION-NAME with NODE
+                   as the \"left\" node has exactly one \"right\"
+                   node.
 
-      * -> The relation designated by RELATION-NAME with NODE as the
-           \"left\" node has exactly zero or ore \"right\" nodes.
+      *            The relation designated by RELATION-NAME with NODE
+                   as the \"left\" node has zero or more \"right\"
+                   nodes.
+
+      (:map . KEY) The relation designated by RELATION-NAME with NODE
+                   as the \"left\" node has zero or more \"right\"
+                   nodes with the additional constraint that the
+                   relation parameters for each such node must contain
+                   a unique value for the key KEY.
 
     . This cardinality information is reflected by the return values
     of (node-relation BUILDER RELATION-NAME NODE)."))
@@ -252,8 +269,9 @@
 (defgeneric node-relation (builder relation node)
   (:argument-precedence-order node relation builder)
   (:documentation
-   "Return two values: 1) a list nodes related to NODE via RELATION
-    w.r.t. BUILDER 2) a same-length list of arguments of the relations.
+   "Return two values: 1) a list of nodes related to NODE via RELATION
+    w.r.t. BUILDER 2) a same-length list of arguments of the
+    relations.
 
     Each element in the list of relation arguments is EQUAL to the
     list of arguments passed to the RELATE call that, using BUILDER,
