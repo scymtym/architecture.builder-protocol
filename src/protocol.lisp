@@ -330,11 +330,11 @@
     relations is not supplied via the :relations keyword parameter,
     all relations are traversed. The :function keyword parameter
     allows performing the traversal with a different function instead
-    of FUNCTION. Calls of this function a list each element of which
-    is the result for the corresponding element of RELATIONS. The
-    result for a relation is either the return value of FUNCTION if
-    the cardinality of the relation is 1 or ? or a list of such return
-    values if the cardinality is * or :map.
+    of FUNCTION. Calls of this function return a list of elements each
+    of which is the result for the corresponding element of
+    RELATIONS. The result for a relation is either the return value of
+    FUNCTION if the cardinality of the relation is 1 or ? or a list of
+    such return values if the cardinality is * or :map.
 
     If FUNCTION is an instance of `peeking', call the \"peeking\"
     function stored in FUNCTION before the ordinary walk
