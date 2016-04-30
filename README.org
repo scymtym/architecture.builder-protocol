@@ -109,15 +109,27 @@
                               builder :literal :value 6)))
              (operator (architecture.builder-protocol:make-node builder :operator)))
                 (architecture.builder-protocol:finish-node
-         builder :operator
-         (reduce (lambda (l r)
-                   (architecture.builder-protocol:relate
-                    builder :operator-operand l r))
-                 operands :initial-value operator)))
+                 builder :operator
+                 (reduce (lambda (l r)
+                           (architecture.builder-protocol:relate
+                            builder :operator-operand l r))
+                         operands :initial-value operator)))
     #+end_src
 
     #+RESULTS:
     : #<OPERATOR {100E5961}>
+
+    The following i a more compact (but equivalent behind the scenes)
+    spelling of the above code:
+    #+BEGIN_SRC lisp :exports both :session "tutorial"
+      (architecture.builder-protocol:with-builder ((make-instance 'ast-builder))
+        (architecture.builder-protocol:node* (:operator)
+          (* :operator-operand (list (architecture.builder-protocol:node* (:literal :value 5))
+                                     (architecture.builder-protocol:node* (:literal :value 6))))))
+    #+END_SRC
+
+    #+RESULTS:
+    : #<OPERATOR {1019F0E013}>
 
 *** Implementing a Producer of Results
     We will use a parser for a very simple expressions in polish
