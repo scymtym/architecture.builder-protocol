@@ -304,6 +304,7 @@
    In a typical case, RELATION could be :child, LEFT being the parent
    node and RIGHT being the child node.
 #+end_example
+
 *** STARTED Convenience Functions
     #+BEGIN_SRC lisp :exports results :session "doc"
       (doc 'architecture.builder-protocol:add-relations 'function)
