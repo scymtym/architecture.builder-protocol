@@ -257,12 +257,13 @@
    #+end_src
 
    #+RESULTS:
-   : make-node BUILDER KIND &REST INITARGS &KEY BOUNDS &ALLOW-OTHER-KEYS
+   : make-node BUILDER KIND &REST INITARGS &KEY &ALLOW-OTHER-KEYS
    :
    : Use BUILDER to make a result tree node of kind KIND and return it.
    :
-   : When supplied, BOUNDS is of the form (START . END) and can be used
-   : to indicate the input range for which the tree is constructed.
+   : As a convention, when supplied, the value of the :bounds keyword
+   : argument is of the form (START . END) and can be used to indicate
+   : the input range for which the tree is constructed.
 
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:finish-node 'function)
@@ -279,7 +280,7 @@
 
    #+RESULTS:
    #+begin_example
-   relate BUILDER RELATION LEFT RIGHT &REST ARGS &ALLOW-OTHER-KEYS
+   relate BUILDER RELATION LEFT RIGHT &REST ARGS &KEY &ALLOW-OTHER-KEYS
 
    Establish RELATION between nodes LEFT and RIGHT and return the
    resulting modified LEFT node (or an appropriate newly created
@@ -338,14 +339,23 @@
    i.e. CARDINALITY is not present, it is assumed to be
    `*'. CARDINALITY values are interpreted as follows:
 
-   ? -> The relation designated by RELATION-NAME with NODE as the
-   "left" node has zero or one "right" nodes.
+   ?            The relation designated by RELATION-NAME with NODE
+   as the "left" node has zero or one "right"
+   nodes.
 
-   1 -> The relation designated by RELATION-NAME with NODE as the
-   "left" node has exactly one "right" node.
+   1            The relation designated by RELATION-NAME with NODE
+   as the "left" node has exactly one "right"
+   node.
 
-   * -> The relation designated by RELATION-NAME with NODE as the
-   "left" node has exactly zero or ore "right" nodes.
+   *            The relation designated by RELATION-NAME with NODE
+   as the "left" node has zero or more "right"
+   nodes.
+
+   (:map . KEY) The relation designated by RELATION-NAME with NODE
+   as the "left" node has zero or more "right"
+   nodes with the additional constraint that the
+   relation parameters for each such node must contain
+   a unique value for the key KEY.
 
    . This cardinality information is reflected by the return values
    of (node-relation BUILDER RELATION-NAME NODE).
@@ -358,8 +368,9 @@
    #+RESULTS:
    : node-relation BUILDER RELATION NODE
    :
-   : Return two values: 1) a list nodes related to NODE via RELATION
-   : w.r.t. BUILDER 2) a same-length list of arguments of the relations.
+   : Return two values: 1) a list of nodes related to NODE via RELATION
+   : w.r.t. BUILDER 2) a same-length list of arguments of the
+   : relations.
    :
    : Each element in the list of relation arguments is EQUAL to the
    : list of arguments passed to the RELATE call that, using BUILDER,
@@ -374,6 +385,8 @@
    walk-nodes BUILDER FUNCTION ROOT
 
    Call FUNCTION on nodes of the tree ROOT constructed by BUILDER.
+
+   Return whatever FUNCTION returns when called for ROOT.
 
    The lambda-list of FUNCTION must be compatible to
 
@@ -402,7 +415,11 @@
    relations is not supplied via the :relations keyword parameter,
    all relations are traversed. The :function keyword parameter
    allows performing the traversal with a different function instead
-   of FUNCTION.
+   of FUNCTION. Calls of this function return a list of elements each
+   of which is the result for the corresponding element of
+   RELATIONS. The result for a relation is either the return value of
+   FUNCTION if the cardinality of the relation is 1 or ? or a list of
+   such return values if the cardinality is * or :map.
 
    If FUNCTION is an instance of `peeking', call the "peeking"
    function stored in FUNCTION before the ordinary walk
