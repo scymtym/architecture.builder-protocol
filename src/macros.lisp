@@ -1,6 +1,6 @@
 ;;;; macros.lisp --- Macros provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -9,7 +9,7 @@
 ;; related to build protocol
 
 (defmacro node ((builder kind &rest initargs &key &allow-other-keys)
-                &body relations)
+                &body relations &environment env)
   "Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
 
    BUILDER, KIND and INITARGS are evaluated and passed to `make-node'.
@@ -24,12 +24,22 @@
 
      (node (:operator :which '+)
        (* :operand (list left right)))"
-  (flet ((wrap-in-list (spec)
-           (destructuring-bind (arity relation right &rest args) spec
-             `(list ',arity ,relation ,right ,@args))))
+  (labels ((make-argument-list (args)
+             (cond
+               ((null args)
+                '())
+               ((every (rcurry #'constantp env) args)
+                `',args)
+               (t
+                `(list ,@args))))
+           (wrap-in-list (spec)
+             (destructuring-bind (arity relation right &rest args) spec
+               `(list* ',arity ,relation ,right ,(make-argument-list args)))))
     `(make+finish-node+relations
-      ,builder ,kind (list ,@initargs)
-      (list ,@(mapcar #'wrap-in-list relations)))))
+      ,builder ,kind ,(make-argument-list initargs)
+      ,(if relations
+           `(list ,@(mapcar #'wrap-in-list relations))
+           '()))))
 
 (defmacro node* ((kind &rest initargs &key &allow-other-keys) &body relations)
   "Like `node' but uses `*builder*' instead of accepting a builder
