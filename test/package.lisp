@@ -34,9 +34,7 @@
    system.")
 
 (defun run-tests ()
-  (let ((results (run :architecture.builder-protocol)))
-    (explain! results)
-    (results-status results)))
+  (run! :architecture.builder-protocol))
 
 ;;; `mock-node' and mock builders
 
