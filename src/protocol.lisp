@@ -101,18 +101,18 @@
     In a typical case, RELATION could be :child, LEFT being the parent
     node and RIGHT being the child node."))
 
-;; Default behavior
+;;; Default behavior
 
-;; No preparation.
 (defmethod prepare ((builder t))
+  ;; No preparation.
   builder)
 
-;; No action, just return the result.
 (defmethod finish ((builder t) (result cons))
+  ;; No action, just return the result.
   (values-list result))
 
-;; No action, just call the function.
 (defmethod wrap ((builder t) (thunk function))
+  ;; No action, just call the function.
   (let ((*builder* builder))
     (multiple-value-list (funcall thunk builder))))
 
@@ -120,14 +120,14 @@
   (let ((*builder* builder))
     (multiple-value-list (funcall thunk builder))))
 
-;; This allows consumers to omit defining a method on `finish-node'.
 (defmethod finish-node ((builder t) (kind t) (node t))
+  ;; This allows consumers to omit defining a method on `finish-node'.
   node)
 
-;; This allows using nil to indicate that no relation should be in
-;; situations in which the call to `relate' would be inconvenient to
-;; avoid.
 (defmethod relate ((builder t) (relation t) (left t) (right null) &key)
+  ;; This allows using nil to indicate that no relation should be in
+  ;; situations in which the call to `relate' would be inconvenient to
+  ;; avoid.
   left)
 
 ;;; Convenience functions
@@ -284,7 +284,7 @@
     list of arguments passed to the RELATE call that, using BUILDER,
     established the relation between NODE and the related node."))
 
-;; Default behavior
+;;; Default behavior
 
 (defmethod node-initargs ((builder t) (node t))
   '())
@@ -383,7 +383,7 @@
     same shape as the traversed tree containing return values of
     FUNCTION."))
 
-;; Default methods
+;;; Default methods
 
 (declaim (ftype (function ((or null function) function t t)
                           (values t &optional))

@@ -6,7 +6,7 @@
 
 (cl:in-package #:architecture.builder-protocol)
 
-;; related to build protocol
+;;; related to build protocol
 
 (defmacro node ((builder kind &rest initargs &key &allow-other-keys)
                 &body relations &environment env)
@@ -102,7 +102,7 @@
   `*builder*' is usually bound to the builder constructed by
   BUILDER-FORM (depending on methods on `prepare' and `wrap').")
 
-;;;; `with-unbuilder'
+;;; `with-unbuilder'
 
 (defun call-with-unbuilder (builder thunk)
   (let ((*builder* builder))
