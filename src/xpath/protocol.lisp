@@ -92,7 +92,7 @@
 (defun evaluate-using-navigator (xpath tree navigator)
   (let* ((document          (make-document-proxy tree))
          (xpath:*navigator* navigator)
-         (root              (xpath::pipe-head
+         (root              (xpath-sys:pipe-head
                              (xpath-protocol:child-pipe document))))
     (xpath:evaluate xpath root)))
 
