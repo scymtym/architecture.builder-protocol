@@ -35,13 +35,16 @@
   "Smoke test for the `evaluate' function attribute nodes."
 
   (evaluate-test
-   `(("@bar"              (:foo () :bar 1) ((:bar . 1)))
-     ("name(@*)"          (:foo () :bar 1) "bar")
-     ("name(@*)"          (:foo () +    1) "+")
-     ("local-name(@*)"    (:foo () :bar 1) "bar")
-     ("local-name(@*)"    (:foo () +    1) "+")
-     ("namespace-uri(@*)" (:foo () :bar 1) "")
-     ("namespace-uri(@*)" (:foo () +    1) "common-lisp"))))
+   `(("@bar"                   (:foo () :bar 1) ((:bar . 1)))
+     ("name(@*)"               (:foo () :bar 1) "bar")
+     ("name(@*)"               (:foo () +    1) "+")
+     ("local-name(@*)"         (:foo () :bar 1) "bar")
+     ("local-name(@*)"         (:foo () +    1) "+")
+     ("namespace-uri(@*)"      (:foo () :bar 1) "")
+     ("namespace-uri(@*)"      (:foo () +    1) "common-lisp")
+
+     ("@bar/foo"               (:foo () :bar 1) nil)
+     ("@no-such-attribute/foo" (:foo () :bar 1) nil))))
 
 (test evaluate.relation
   "Smoke test for the `evaluate' function on relation nodes."

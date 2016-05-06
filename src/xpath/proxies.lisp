@@ -213,6 +213,11 @@
                                      (proxy     attribute-proxy))
   proxy)
 
+(defmethod child-pipe-using-navigator ((navigator navigator)
+                                       (node      attribute-proxy))
+  ;; This method is necessary for expressions likes @foo/bar.
+  empty-pipe)
+
 ;;; `relation-proxy'
 
 (defstruct (relation-proxy
