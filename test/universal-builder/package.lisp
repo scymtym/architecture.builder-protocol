@@ -13,6 +13,13 @@
    #:architecture.builder-protocol
    #:architecture.builder-protocol.universal-builder)
 
+  (:import-from #:architecture.builder-protocol.universal-builder
+   #:ensure-finalized
+
+   #:slot-information
+   #:slot-type->cardinality
+   #:class-scalar-and-relation-slots)
+
   (:export
    #:run-tests)
 
@@ -30,3 +37,20 @@
 
 (defun run-tests ()
   (run! :architecture.builder-protocol.universal-builder))
+
+;;; Test utilities
+
+(defclass mock-object-1 ()
+  ())
+
+(defclass mock-object-2 ()
+  ((scalar-1)))
+
+(defclass mock-object-3 ()
+  ((scalar-1 :initarg :scalar-1 :type integer)))
+
+(defclass mock-object-4 ()
+  ((relation-1 :initarg :relation-1 :type (or null mock-object-1))))
+
+(defclass mock-object-5 ()
+  ((relation-1 :initarg :relation-1 :type vector)))
