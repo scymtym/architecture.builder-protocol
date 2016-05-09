@@ -89,8 +89,8 @@
             (when (eq key relation)
               (return (values '* entries))))))
     (when entries
-      (case cardinality
+      (cardinality-ecase cardinality
         ((1 ?)
          (values (car entries) (cdr entries)))
-        (t
+        ((* :map)
          (values (mapcar #'car entries) (mapcar #'cdr entries)))))))
