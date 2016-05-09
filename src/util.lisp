@@ -1,6 +1,6 @@
 ;;;; util.lisp --- Utilities provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2015 Jan Moringen
+;;;; Copyright (C) 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -29,7 +29,7 @@
                  (etypecase spec
                    ((or %map-pattern (eql :map))
                     (removef remaining :map)
-                    '(cons (eql :map)))
+                    '(cons (eql :map) (not cons)))
                    ((member 1 ? *)
                     (removef remaining spec)
                     `(eql ,spec))))

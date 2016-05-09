@@ -1,6 +1,6 @@
 ;;;; util.lisp --- Unit tests for utilities provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2015 Jan Moringen
+;;;; Copyright (C) 2015, 2016 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -16,3 +16,23 @@
     (is (equal '(:foo *)           (do-it :foo)))
     (is (equal '(:foo 1)           (do-it '(:foo . 1))))
     (is (equal '(:foo (:map :bar)) (do-it '(:foo . (:map :bar)))))))
+
+(test cardinality-case.smoke
+  "Smoke test for the `cardinality-case' macro."
+
+  (flet ((test-case (value expected)
+           (is (eq expected (cardinality-case value
+                              (1    :one)
+                              (?    :maybe-one)
+                              (*    :many)
+                              (:map :map))))))
+    (test-case 1              :one)
+    (test-case '?             :maybe-one)
+    (test-case '*             :many)
+    (test-case '(:map . :key) :map)))
+
+(test cardinality-ecase.error
+  "Non-exhaustive `cardinality-ecase' forms should signal an error."
+
+  (signals error
+    (macroexpand '(cardinality-ecase c ((1 ?) :foo) ((*) :bar)))))
