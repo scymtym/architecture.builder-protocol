@@ -478,7 +478,7 @@
                                &rest args &key &allow-other-keys))
 
   (define-abbreviation add-relations (node relations))
-  (define-abbreviation make+finish-node (node &rest initargs
+  (define-abbreviation make+finish-node (kind &rest initargs
                                          &key &allow-other-keys))
   (define-abbreviation make+finish-node+relations (kind initargs relations))
 
