@@ -276,11 +276,11 @@
 (defgeneric node-relation (builder relation node)
   (:argument-precedence-order node relation builder)
   (:documentation
-   "Return two values: 1) a list of nodes related to NODE via RELATION
-    w.r.t. BUILDER 2) a same-length list of arguments of the
-    relations.
+   "Return two values: 1) a sequence of nodes related to NODE via
+    RELATION w.r.t. BUILDER 2) `nil' or a same-length sequence of
+    arguments of the relations.
 
-    Each element in the list of relation arguments is EQUAL to the
+    Each element in the sequence of relation arguments is EQUAL to the
     list of arguments passed to the RELATE call that, using BUILDER,
     established the relation between NODE and the related node."))
 
@@ -423,11 +423,12 @@
                                          relation args targets))
                              ((* :map)
                               (when targets
-                                (mapcar (curry #'walk-node
-                                               function builder relation)
-                                        (or args (load-time-value
-                                                  (circular-list '()) t))
-                                        targets)))))))))
+                                (map 'list
+                                     (curry #'walk-node
+                                            function builder relation)
+                                     (or args (load-time-value
+                                               (circular-list '()) t))
+                                     targets)))))))))
              (declare (dynamic-extent #'recurse))
              (apply walk-function #'recurse
                     relation relation-args node kind relations initargs)))))

@@ -234,7 +234,7 @@
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
-                                :relations `((:baz . ((,node-1)))))))
+                                :relations `((:baz . ,(vector `(,node-1)))))))
         `(,node-2
           (((:foo)))
           ((:visit nil  () ,node-2 :bar (:baz) ())
@@ -242,7 +242,7 @@
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
-                                :relations `((:baz . ((,node-1 :b 2)))))))
+                                :relations `((:baz . ,(vector `(,node-1 :b 2)))))))
         `(,node-2
           (((:foo)))
           ((:visit nil  ()     ,node-2 :bar (:baz) ())

@@ -97,7 +97,8 @@
         ((? 1)
          (values (car targets) (cdr targets)))
         ((* :map)
-         (values (mapcar #'car targets) (mapcar #'cdr targets)))))))
+         (values (map (class-of targets) #'car targets)
+                 (map 'list              #'cdr targets)))))))
 
 (defclass preparable-mock-builder (mock-builder)
   ((prepared? :accessor builder-prepared?
