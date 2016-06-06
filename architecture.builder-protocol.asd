@@ -33,7 +33,7 @@
   :description "Unit tests of the architecture.builder-protocol system."
   :depends-on  (:alexandria
 
-                (:version :fiveam "1.1"))
+                (:version :fiveam "1.3"))
   :components  ((:module     "test"
                  :serial     t
                  :components ((:file       "package")
