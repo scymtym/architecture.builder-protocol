@@ -357,16 +357,17 @@
 
     NIL
 
-      Store processing of NODE, in particular do not call `node-kind',
-      `node-relations', `node-initargs' or the walk function for NODE.
+      Forego processing of NODE, in particular do not call
+      `node-kind', `node-relations', `node-initargs' or the walk
+      function for NODE.
 
     T [* * * BUILDER]
 
       Continue processing as if there was no \"peeking\" function.
 
       If non-NIL, BUILDER specifies a builder that should be used
-      instead of the current builder to process the current node and
-      its ancestors.
+      instead of the current builder to process the NODE and its
+      ancestors.
 
     INSTEAD KIND INITARGS RELATIONS [BUILDER]
 
