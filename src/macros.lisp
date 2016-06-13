@@ -105,8 +105,7 @@
 ;;; `with-unbuilder'
 
 (defun call-with-unbuilder (builder thunk)
-  (let ((*builder* builder))
-    (funcall thunk builder)))
+  (values-list (wrap builder thunk)))
 
 (defmacro with-unbuilder (spec &body body)
   (%expand-with-builder

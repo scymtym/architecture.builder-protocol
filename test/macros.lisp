@@ -130,6 +130,7 @@
   "Smoke for the first syntax of the `with-unbuilder' macro."
 
   (let ((result (with-unbuilder ((make-instance 'mock-builder))
+                  (is (eq *builder* *mock-context*))
                   (node-kind *builder* (mock-node :foo)))))
     (is (eq :foo result))))
 
@@ -137,5 +138,7 @@
   "Smoke for the second syntax of the `with-unbuilder' macro."
 
   (let ((result (with-unbuilder (builder (make-instance 'mock-builder))
+                  (is (eq *builder* *mock-context*))
+                  (is (eq builder *mock-context*))
                   (node-kind builder (mock-node :foo)))))
     (is (eq :foo result))))
