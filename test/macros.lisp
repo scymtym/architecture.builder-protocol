@@ -15,6 +15,7 @@
 
   (multiple-value-bind (result-1 result-2)
       (with-builder ((make-instance 'preparable-finish-mock-builder))
+        (is (eq *builder* *mock-context*))
         (values (make-node *builder* :foo) 2))
     (is (equalp `(:finish ,(mock-node :foo :slots '(:prepared? t))) result-1))
     (is (eql 2 result-2))))
@@ -24,6 +25,8 @@
 
   (let ((result (with-builder (builder (make-instance
                                         'preparable-finish-mock-builder))
+                  (is (eq *builder* *mock-context*))
+                  (is (eq builder *mock-context*))
                   (make-node builder :foo))))
     (is (equalp `(:finish ,(mock-node :foo :slots '(:prepared? t))) result))))
 

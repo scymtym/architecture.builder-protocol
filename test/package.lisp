@@ -51,7 +51,13 @@
   (relations '() :type list)
   (finished? nil :type boolean))
 
+(defvar *mock-context*)
+
 (defclass mock-builder () ())
+
+(defmethod wrap ((builder mock-builder) (thunk t))
+  (let ((*mock-context* builder))
+    (call-next-method)))
 
 (defmethod make-node ((builder mock-builder) (kind t)
                       &rest initargs)
