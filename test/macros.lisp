@@ -14,8 +14,7 @@
   "Smoke test for first syntax of the `with-builder' macro."
 
   (multiple-value-bind (result-1 result-2)
-      (with-builder ((make-instance
-                      'preparable-finish-mock-builder))
+      (with-builder ((make-instance 'preparable-finish-mock-builder))
         (values (make-node *builder* :foo) 2))
     (is (equalp `(:finish ,(mock-node :foo :slots '(:prepared? t))) result-1))
     (is (eql 2 result-2))))
