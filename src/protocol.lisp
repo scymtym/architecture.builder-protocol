@@ -352,8 +352,8 @@
 
     (i.e. it does not receive kind, initargs or relations). This
     function can control whether NODE should be processed normally,
-    replaced with something else, processed with different builder or
-    ignored: Its return values are interpreted as follows:
+    replaced with something else, processed with a different builder
+    or ignored: Its return values are interpreted as follows:
 
     NIL
 
