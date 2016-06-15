@@ -6,6 +6,25 @@
 
 (cl:in-package #:architecture.builder-protocol.json)
 
+(declaim (inline %maybe-escape-boolean %maybe-unescape-boolean))
+
+(defun %maybe-escape-boolean (value)
+  (case value
+    ((t)   '%t)
+    ((nil) '%nil)
+    (t     value)))
+
+(defun %maybe-unescape-boolean (value)
+  (case value
+    ((%t)   t)
+    ((%nil) nil)
+    (t      value)))
+
+(declaim (ftype (function (t) (values (or null function) &optional))
+                %maybe-ensure-function))
+(defun %maybe-ensure-function (thing)
+  (when thing (ensure-function thing)))
+
 (declaim (ftype (function (t &key (:cache-size non-negative-integer))
                           (values function &optional))
                 make-symbol-transform)
@@ -43,11 +62,6 @@
     (if (stringp key)
         key
         (princ-to-string key))))
-
-(declaim (ftype (function (t) (values (or null function) &optional))
-                %maybe-ensure-function))
-(defun %maybe-ensure-function (thing)
-  (when thing (ensure-function thing)))
 
 (defun make-walk-function
     (&key
@@ -109,7 +123,7 @@
                            &rest initargs &key &allow-other-keys)
                (declare (ignore relation relation-args))
                (if (eq kind 'raw)
-                   (json:encode-json node)
+                   (json:encode-json (%maybe-unescape-boolean node))
                    (json:with-object ()
                      (when kind-transform
                        (encode-property "kind" kind kind-transform))
@@ -180,11 +194,11 @@
           (flet ((peek-wrapper (builder relation relation-args node)
                    (multiple-value-bind (instead kind initargs relations builder*)
                        (funcall peek-function builder relation relation-args node)
-                     (case instead
-                       ((nil t)
-                        (values instead kind initargs relations builder*))
+                     (case kind
+                       (raw
+                        (values (%maybe-escape-boolean instead) 'raw))
                        (t
-                        (values instead 'raw '()      '()       builder*))))))
+                        (values instead kind initargs relations builder*))))))
             (peeking #'peek-wrapper visit-function)))
         visit-function)))
 

@@ -156,19 +156,21 @@
 (test serialize.peek-function
   "Test supplying a \"peek function\" to the `serialize' function."
 
-  (labels ((instead-of-values (value)
-             (if (typep value 'boolean)
-                 value
-                 (values value 'raw)))
-           (instead-of-any (value)
+  (labels ((instead-of-values (value &key (raw (typep value '(not boolean))))
+             (if raw
+                 (values value 'raw)
+                 value))
+           (instead-of-any (value &rest args &key raw)
+             (declare (ignore raw))
              (lambda (builder relation relations-args node)
                (declare (ignore builder relation relations-args node))
-               (instead-of-values value)))
-           (instead-of-baz (value)
+               (apply #'instead-of-values value args)))
+           (instead-of-baz (value &rest args &key raw)
+             (declare (ignore raw))
              (lambda (builder relation relations-args node)
                (declare (ignore builder relations-args node))
                (if (eq relation :baz)
-                   (instead-of-values value)
+                   (apply #'instead-of-values value args)
                    t))))
     (serialize-test-cases
      `( ;; Normal behavior.
@@ -224,7 +226,57 @@
 
        ((:foo ((:baz . (:map . :key)) (((:fez ()) :key 1))) :bar 1)
         (:peek-function ,(instead-of-baz 5) :kind-transform nil)
-        "{\"bar\":1,\"baz\":{\"1\":5}}")))))
+        "{\"bar\":1,\"baz\":{\"1\":5}}")
+
+       ;; Replacing nodes with true.
+       ((:foo () :bar 1)
+        (:peek-function ,(instead-of-any t :raw t))
+        "true")
+
+       ((:foo (:baz (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz t :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":[true]}")
+
+       ((:foo ((:baz . 1) (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz t :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":true}")
+
+       ((:foo ((:baz . ?) (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz t :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":true}")
+
+       ((:foo ((:baz . *) (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz t :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":[true]}")
+
+       ((:foo ((:baz . (:map . :key)) (((:fez ()) :key 1))) :bar 1)
+        (:peek-function ,(instead-of-baz t :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":{\"1\":true}}")
+
+       ;; Replacing nodes with false.
+       ((:foo () :bar 1)
+        (:peek-function ,(instead-of-any nil :raw t))
+        "null")
+
+       ((:foo (:baz (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz nil :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":[null]}")
+
+       ((:foo ((:baz . 1) (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz nil :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":null}")
+
+       ((:foo ((:baz . ?) (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz nil :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":null}")
+
+       ((:foo ((:baz . *) (((:fez ())))) :bar 1)
+        (:peek-function ,(instead-of-baz nil :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":[null]}")
+
+       ((:foo ((:baz . (:map . :key)) (((:fez ()) :key 1))) :bar 1)
+        (:peek-function ,(instead-of-baz nil :raw t) :kind-transform nil)
+        "{\"bar\":1,\"baz\":{\"1\":null}}")))))
 
 (test symbol-transform-cache.flush
   "Test that overflowing the transform caches causes flushes."
