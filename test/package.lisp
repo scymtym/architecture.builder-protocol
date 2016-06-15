@@ -178,16 +178,20 @@
                 `(:visit ,relation ,relation-args ,node ,kind ,relations ,initargs))
        (or (funcall recurse) kind)))))
 
-(defun record-un-build-calls/peeking (walk-nodes builder atom-type object)
+(defun record-un-build-calls/peeking (walk-nodes builder atom-type object
+                                      &key peek-function)
   (%record-un-build-calls
    walk-nodes builder object
    (lambda (record)
      (peeking
       (lambda (builder relation relation-args node)
-        (declare (ignore builder))
         (funcall record `(:peek ,relation ,relation-args ,node))
-        (unless (typep node atom-type)
-          t))
+        (cond
+          ((typep node atom-type)
+           nil)
+          (peek-function
+           (funcall peek-function builder relation relation-args node))
+          (t)))
       (lambda (recurse relation relation-args node kind relations
                &rest initargs)
         (funcall record
