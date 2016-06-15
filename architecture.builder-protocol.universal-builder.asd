@@ -18,6 +18,7 @@
                  :pathname   "src/universal-builder"
                  :components ((:file       "package")
                               (:file       "util")
+                              (:file       "mixins")
                               (:file       "universal-builder"))))
   :in-order-to ((test-op (test-op :architecture.builder-protocol.universal-builder-test))))
 

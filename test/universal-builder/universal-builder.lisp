@@ -64,7 +64,9 @@
     (do-it *mock-object-8-1* 'mock-object-8)
     (do-it *mock-object-8-2* 'mock-object-8)
     (do-it *mock-object-9-1* 'mock-object-9)
-    (do-it *mock-object-9-2* 'mock-object-9)))
+    (do-it *mock-object-9-2* 'mock-object-9)
+
+    (do-it 1.0d0             'double-float)))
 
 (test universal-builder.node-initargs.smoke
   "Smoke test for `node-initargs' implementation of
@@ -89,7 +91,9 @@
     (do-it *mock-object-8-1* '())
     (do-it *mock-object-8-2* '(:scalar-1 1 :scalar-2 "foo"))
     (do-it *mock-object-9-1* '())
-    (do-it *mock-object-9-2* '())))
+    (do-it *mock-object-9-2* '())
+
+    (do-it 1.0d0             '())))
 
 (test universal-builder.node-relations.smoke
   "Smoke test for `node-relations' implementation of
@@ -132,7 +136,9 @@
                                (:relation-7  . *)
                                (:relation-8  . *)
                                (:relation-9  . *)
-                               (:relation-10 . *)))))
+                               (:relation-10 . *)))
+
+    (do-it 1.0d0             '())))
 
 (test universal-builder.node-relation.smoke
   "Smoke test for `node-relation' implementation of

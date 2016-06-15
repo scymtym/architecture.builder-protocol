@@ -8,7 +8,7 @@
 
 ;;; `universal-builder'
 
-(defclass universal-builder ()
+(defclass universal-builder (opaque-fallback-mixin)
   ()
   (:documentation
    "A builder for standard objects."))
