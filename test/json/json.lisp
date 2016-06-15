@@ -18,7 +18,7 @@
                                      args))))))))
     (mapcar #'test-case cases)))
 
-(test (serialize.smoke)
+(test serialize.smoke
   "Smoke test for the `serialize' function."
 
   (serialize-test-cases
