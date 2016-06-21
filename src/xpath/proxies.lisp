@@ -142,10 +142,7 @@
   (let* ((builder (navigator-builder navigator))
          (node    (node-proxy-value proxy))
          (kind    (node-kind builder node)))
-    (string-downcase
-     (typecase kind
-       (symbol kind)
-       (t      (princ-to-string kind))))))
+    (symbol->name kind)))
 
 (defmethod namespace-uri-using-navigator ((navigator navigator)
                                           (proxy     node-proxy))
@@ -228,7 +225,7 @@
 
 (defmethod local-name-using-navigator ((navigator navigator)
                                        (proxy     attribute-proxy))
-  (string-downcase (attribute-proxy-name proxy))) ; TODO allow customization
+  (symbol->name (attribute-proxy-name proxy))) ; TODO allow customization
 
 (defmethod namespace-uri-using-navigator ((navigator navigator)
                                           (proxy     attribute-proxy))
@@ -259,7 +256,7 @@
 
 (defmethod local-name-using-navigator ((navigator navigator)
                                        (proxy     relation-proxy))
-  (string-downcase (relation-proxy-relation proxy))) ; TODO allow customization
+  (symbol->name (relation-proxy-relation proxy))) ; TODO allow customization
 
 (defmethod namespace-uri-using-navigator ((navigator navigator)
                                           (proxy     relation-proxy))
@@ -299,11 +296,3 @@
 
 (defmethod unwrap ((navigator t) (proxy null))
   proxy)
-
-;;; Utility function
-
-(defun symbol->namespace (symbol)
-  (if-let ((package (when (typep symbol '(and symbol (not keyword)))
-                      (package-name (symbol-package symbol)))))
-    (string-downcase package)
-    ""))

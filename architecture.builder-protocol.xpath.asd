@@ -18,6 +18,7 @@
                  :serial     t
                  :components ((:file       "package")
 
+                              (:file       "util")
                               (:file       "protocol")
                               (:file       "navigator")
                               (:file       "proxies"))))
