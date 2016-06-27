@@ -42,7 +42,7 @@
 ;;;;     </baz>
 ;;;;   </cl:+>
 
-(defgeneric evaluate (xpath builder tree &key printers)
+(defgeneric evaluate (xpath builder tree &key printers node-order)
   (:documentation
    "Evaluate XPATH on TREE using BUILDER in the XPath adapter.
 
@@ -66,7 +66,20 @@
     where BUILDER is the builder stored in NAVIGATOR and VALUE is a
     value extracted from THING such as the value of a valued proxy
     node. The function must return a string representation of
-    VALUE."))
+    VALUE.
+
+    NODE-ORDER only has an effect if XPATH evaluates to a node set. In
+    that case, NODE-ORDER controls whether/how the returned node set
+    is ordered. Possible values are:
+
+    NIL
+
+      The returned node set can be arranged in any order. This can be
+      significantly faster than establishing a particular order.
+
+    :document-order
+
+      Nodes appear in the returned node set in document order."))
 
 (defgeneric find-printer (thing navigator)
   (:documentation
@@ -83,18 +96,23 @@
 
 ;; Default behavior
 
-(defmethod evaluate ((xpath t) (builder t) (tree t) &key printers)
+(defmethod evaluate ((xpath t) (builder t) (tree t)
+                     &key
+                     printers
+                     (node-order :document-order))
   (let ((navigator (make-instance 'navigator
                                   :builder  builder
                                   :printers printers)))
-    (evaluate-using-navigator xpath tree navigator)))
+    (evaluate-using-navigator xpath tree navigator :node-order node-order)))
 
-(defun evaluate-using-navigator (xpath tree navigator)
+(defun evaluate-using-navigator (xpath tree navigator
+                                 &key
+                                 (node-order :document-order))
   (let* ((document          (make-document-proxy tree))
          (xpath:*navigator* navigator)
          (root              (xpath-sys:pipe-head
                              (xpath-protocol:child-pipe document))))
-    (xpath:evaluate xpath root)))
+    (xpath:evaluate xpath root (not (eq node-order :document-order)))))
 
 ;;; Unwrap protocol
 

@@ -9,12 +9,24 @@
 (in-suite :architecture.builder-protocol.xpath)
 
 (defun evaluate-test (cases)
-  (labels ((evaluate/unwrap (xpath document)
+  (labels ((evaluate/unwrap (xpath document &rest args)
              (let ((navigator (make-instance 'navigator :builder 'list)))
-               (unwrap navigator (evaluate-using-navigator
-                                  xpath document navigator))))
+               (unwrap navigator (apply #'evaluate-using-navigator
+                                        xpath document navigator args))))
+           (equal/ (left right)
+             (cond
+               ((and (emptyp left) (emptyp right))
+                t)
+               (t
+                (map-permutations (lambda (permutation)
+                                    (when (equal permutation right)
+                                      (return-from equal/ t)))
+                                  left)
+                nil)))
            (test-case (xpath document expected)
-             (is (equal expected (evaluate/unwrap xpath document)))))
+             (is (equal  expected (evaluate/unwrap xpath document)))
+             (is (equal/ expected (evaluate/unwrap xpath document
+                                                   :node-order nil)))))
     (mapcar (curry #'apply #'test-case) cases)))
 
 (test evaluate.element
@@ -109,6 +121,17 @@
        ("//*"     ,document-2 ,(list document-2
                                      relation child-1
                                      relation child-2))))))
+
+(test evaluate.sorting
+  "Smoke test for the `evaluate' function on expressions the results
+   of which depend on whether document-order is requested."
+
+  (evaluate-test
+   (let* ((child-1  '(:fez-1 ()))
+          (child-2  '(:fez-2 ()))
+          (document `(:foo (,:bar ((,child-1) (,child-2))))))
+     `(("union(bar/fez-2, bar/fez-1)" ,document ,(list child-1 child-2))
+       ("union(bar/*, bar/*)"         ,document ,(list child-1 child-2))))))
 
 (test evaluate.string
   "Smoke test for the `evaluate' function on expressions calling the
