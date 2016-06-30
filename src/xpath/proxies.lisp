@@ -61,12 +61,12 @@
   node)
 
 (defmethod node-p-using-navigator ((navigator navigator)
-                                   (proxy     proxy))
+                                   (node      proxy))
   t)
 
 (defmethod parent-node-using-navigator ((navigator navigator)
-                                        (proxy     proxy))
-  (proxy-parent proxy))
+                                        (node      proxy))
+  (proxy-parent node))
 
 (defmethod child-pipe-using-navigator :around ((navigator navigator)
                                                (node      proxy))
@@ -82,16 +82,16 @@
   (root nil :read-only t))
 
 (defmethod node-type-p-using-navigator ((navigator navigator)
-                                        (proxy     document-proxy)
+                                        (node      document-proxy)
                                         (type      (eql :document)))
   t)
 
 (defmethod local-name-using-navigator ((navigator navigator)
-                                       (proxy     document-proxy))
+                                       (node      document-proxy))
   "")
 
 (defmethod attribute-pipe-using-navigator ((navigator navigator)
-                                           (proxy     document-proxy))
+                                           (node      document-proxy))
   empty-pipe)
 
 (defmethod child-pipe-using-navigator ((navigator navigator)
@@ -108,10 +108,10 @@
   (value nil :read-only t))
 
 (defmethod node-text-using-navigator ((navigator navigator)
-                                      (proxy     valued-proxy))
-  (let ((value (valued-proxy-value proxy)))
+                                      (node      valued-proxy))
+  (let ((value (valued-proxy-value node)))
     (cond
-      ((when-let ((printer (find-printer proxy navigator)))
+      ((when-let ((printer (find-printer node navigator)))
          (locally (declare (type function printer))
            (funcall printer (navigator-builder navigator) value))))
       ((stringp value)
@@ -148,30 +148,30 @@
        ,@body)))
 
 (defmethod node-type-p-using-navigator ((navigator navigator)
-                                        (proxy     node-proxy)
+                                        (node      node-proxy)
                                         (type      (eql :element)))
   t)
 
 (defmethod local-name-using-navigator ((navigator navigator)
-                                       (proxy     node-proxy))
-  (with-node-proxy-access (kind (navigator proxy))
+                                       (node      node-proxy))
+  (with-node-proxy-access (kind (navigator node))
     (symbol->name kind)))
 
 (defmethod namespace-uri-using-navigator ((navigator navigator)
-                                          (proxy     node-proxy))
-  (with-node-proxy-access (kind (navigator proxy))
+                                          (node      node-proxy))
+  (with-node-proxy-access (kind (navigator node))
     (symbol->namespace kind)))
 
 (defmethod attribute-pipe-using-navigator ((navigator navigator)
-                                           (proxy     node-proxy))
-  (with-node-proxy-access (initargs (navigator proxy))
+                                           (node      node-proxy))
+  (with-node-proxy-access (initargs (navigator node))
     (list->instance-pipe (initargs (name value &rest rest))
-      (make-attribute-proxy name value proxy))))
+      (make-attribute-proxy name value node))))
 
 (defmethod child-pipe-using-navigator ((navigator navigator)
-                                       (proxy     node-proxy))
+                                       (node      node-proxy))
   (with-node-proxy-access
-      ((relations :builder builder :value value) (navigator proxy))
+      ((relations :builder builder :value value) (navigator node))
     (labels ((pipe-step (relation current-targets current-args remainder)
                (multiple-value-bind (relation* cardinality)
                    (normalize-relation relation)
@@ -182,7 +182,7 @@
                    (current-targets
                     (flet ((yield (target args target-rest args-rest)
                              (make-pipe
-                              (make-relation-proxy relation* target args proxy)
+                              (make-relation-proxy relation* target args node)
                               (pipe-step relation target-rest args-rest remainder))))
                       (cardinality-ecase cardinality
                         ((1 ?)
@@ -223,20 +223,20 @@
             (:constructor make-attribute-proxy (name value parent))
             (:predicate nil)
             (:copier nil))
-  (name  nil :read-only t))
+  (name nil :read-only t))
 
 (defmethod node-type-p-using-navigator ((navigator navigator)
-                                        (proxy     attribute-proxy)
+                                        (node      attribute-proxy)
                                         (type      (eql :attribute)))
   t)
 
 (defmethod local-name-using-navigator ((navigator navigator)
-                                       (proxy     attribute-proxy))
-  (symbol->name (attribute-proxy-name proxy))) ; TODO allow customization
+                                       (node      attribute-proxy))
+  (symbol->name (attribute-proxy-name node))) ; TODO allow customization
 
 (defmethod namespace-uri-using-navigator ((navigator navigator)
-                                          (proxy     attribute-proxy))
-  (symbol->namespace (attribute-proxy-name proxy)))
+                                          (node      attribute-proxy))
+  (symbol->namespace (attribute-proxy-name node)))
 
 (defmethod child-pipe-using-navigator ((navigator navigator)
                                        (node      attribute-proxy))
@@ -257,27 +257,27 @@
   (args     nil :type list :read-only t))
 
 (defmethod node-type-p-using-navigator ((navigator navigator)
-                                        (proxy     relation-proxy)
+                                        (node      relation-proxy)
                                         (type      (eql :element)))
   t)
 
 (defmethod local-name-using-navigator ((navigator navigator)
-                                       (proxy     relation-proxy))
-  (symbol->name (relation-proxy-relation proxy))) ; TODO allow customization
+                                       (node      relation-proxy))
+  (symbol->name (relation-proxy-relation node))) ; TODO allow customization
 
 (defmethod namespace-uri-using-navigator ((navigator navigator)
-                                          (proxy     relation-proxy))
-  (symbol->namespace (relation-proxy-relation proxy)))
+                                          (node      relation-proxy))
+  (symbol->namespace (relation-proxy-relation node)))
 
 (defmethod attribute-pipe-using-navigator ((navigator navigator)
-                                           (proxy     relation-proxy))
-  (let ((args (relation-proxy-args proxy)))
+                                           (node     relation-proxy))
+  (let ((args (relation-proxy-args node)))
     (list->instance-pipe (args (name value &rest rest))
-      (make-attribute-proxy name value proxy))))
+      (make-attribute-proxy name value node))))
 
 (defmethod child-pipe-using-navigator ((navigator navigator)
-                                       (proxy     relation-proxy))
-  (make-pipe (make-node-proxy (relation-proxy-target proxy) proxy) empty-pipe))
+                                       (node      relation-proxy))
+  (make-pipe (make-node-proxy (relation-proxy-target node) node) empty-pipe))
 
 ;;; Unwrap
 
