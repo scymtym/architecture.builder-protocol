@@ -132,6 +132,21 @@
                        (:predicate nil)
                        (:copier nil)))
 
+(defmacro with-node-proxy-access ((name-and-options (navigator proxy))
+                                  &body body)
+  (destructuring-bind ((name &optional (accessor (symbolicate '#:node- name)))
+                       &key (builder (gensym)) (value (gensym)))
+      (typecase name-and-options
+        ((not cons) (list (list name-and-options)))
+        ((cons symbol (cons keyword t))
+         (list* (list (first name-and-options)) (rest name-and-options)))
+        (t
+         name-and-options))
+    `(let* ((,builder (navigator-builder ,navigator))
+            (,value   (node-proxy-value ,proxy))
+            (,name    (,accessor ,builder ,value)))
+       ,@body)))
+
 (defmethod node-type-p-using-navigator ((navigator navigator)
                                         (proxy     node-proxy)
                                         (type      (eql :element)))
@@ -139,30 +154,24 @@
 
 (defmethod local-name-using-navigator ((navigator navigator)
                                        (proxy     node-proxy))
-  (let* ((builder (navigator-builder navigator))
-         (node    (node-proxy-value proxy))
-         (kind    (node-kind builder node)))
+  (with-node-proxy-access (kind (navigator proxy))
     (symbol->name kind)))
 
 (defmethod namespace-uri-using-navigator ((navigator navigator)
                                           (proxy     node-proxy))
-  (let* ((builder (navigator-builder navigator))
-         (node    (node-proxy-value proxy))
-         (kind    (node-kind builder node)))
+  (with-node-proxy-access (kind (navigator proxy))
     (symbol->namespace kind)))
 
 (defmethod attribute-pipe-using-navigator ((navigator navigator)
                                            (proxy     node-proxy))
-  (let* ((builder  (navigator-builder navigator))
-         (node     (node-proxy-value proxy))
-         (initargs (node-initargs builder node)))
+  (with-node-proxy-access (initargs (navigator proxy))
     (list->instance-pipe (initargs (name value &rest rest))
       (make-attribute-proxy name value proxy))))
 
 (defmethod child-pipe-using-navigator ((navigator navigator)
                                        (proxy     node-proxy))
-  (let* ((builder   (navigator-builder navigator))
-         (relations (node-relations builder (node-proxy-value proxy))))
+  (with-node-proxy-access
+      ((relations :builder builder :value value) (navigator proxy))
     (labels ((pipe-step (relation current-targets current-args remainder)
                (multiple-value-bind (relation* cardinality)
                    (normalize-relation relation)
@@ -194,8 +203,7 @@
                       (multiple-value-bind (relation cardinality)
                           (normalize-relation next)
                         (multiple-value-bind (targets args)
-                            (node-relation
-                             builder relation (node-proxy-value proxy))
+                            (node-relation builder relation value)
                           (cardinality-case cardinality
                             ((1 ?)
                              (pipe-step next targets args rest))
