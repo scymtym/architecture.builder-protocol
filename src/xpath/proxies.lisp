@@ -180,20 +180,19 @@
                    ;; nodes and corresponding arguments for the current
                    ;; relation RELATION => put the first into the pipe.
                    (current-targets
-                    (cardinality-ecase cardinality
-                      ((1 ?)
-                       (make-pipe
-                        (make-relation-proxy
-                         relation* current-targets current-args proxy)
-                        (pipe-step relation '() '() remainder)))
-                      ((* :map)
-                       (destructuring-bind (target &rest target-rest)
-                           current-targets
-                         (destructuring-bind (&optional args &rest args-rest)
-                             current-args
-                           (make-pipe
-                            (make-relation-proxy relation* target args proxy)
-                            (pipe-step relation target-rest args-rest remainder)))))))
+                    (flet ((yield (target args target-rest args-rest)
+                             (make-pipe
+                              (make-relation-proxy relation* target args proxy)
+                              (pipe-step relation target-rest args-rest remainder))))
+                      (cardinality-ecase cardinality
+                        ((1 ?)
+                         (yield current-targets current-args '() '()))
+                        ((* :map)
+                         (destructuring-bind (target &rest target-rest)
+                             current-targets
+                           (destructuring-bind (&optional args &rest args-rest)
+                               current-args
+                             (yield target args target-rest args-rest)))))))
                    ;; CURRENT-TARGETS and CURRENT-ARGS and thus the
                    ;; current relation RELATION, are exhausted, and
                    ;; there are more relations in REMAINDER => continue
