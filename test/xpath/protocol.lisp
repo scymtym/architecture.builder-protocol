@@ -23,7 +23,7 @@
   (labels ((evaluate/unwrap (xpath document &rest args)
              (let ((navigator (make-instance 'navigator :builder 'list)))
                (unwrap navigator (apply #'evaluate-using-navigator
-                                        xpath document navigator args))))
+                                        xpath navigator document args))))
            (equal/ (left right)
              (cond
                ((and (emptyp left) (emptyp right))
@@ -188,7 +188,7 @@
              (let ((navigator (apply #'make-instance 'navigator
                                      :builder 'list args)))
                (unwrap navigator (evaluate-using-navigator
-                                  xpath document navigator))))
+                                  xpath navigator document))))
            (test-case (xpath document args expected)
              (is (equal expected (apply #'evaluate/unwrap xpath document args)))))
     (let ((document-2 '(:foo (:bar (((:fez () :baz :who)))))))

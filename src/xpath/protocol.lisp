@@ -103,9 +103,9 @@
   (let ((navigator (make-instance 'navigator
                                   :builder  builder
                                   :printers printers)))
-    (evaluate-using-navigator xpath tree navigator :node-order node-order)))
+    (evaluate-using-navigator xpath navigator tree :node-order node-order)))
 
-(defun evaluate-using-navigator (xpath tree navigator
+(defun evaluate-using-navigator (xpath navigator tree
                                  &key
                                  (node-order :document-order))
   (let* ((document          (make-document-proxy tree))
