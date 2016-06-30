@@ -42,7 +42,8 @@
 ;;;;     </baz>
 ;;;;   </cl:+>
 
-(defgeneric evaluate (xpath builder tree &key printers node-order)
+(defgeneric evaluate (xpath builder tree
+                      &key printers peek-function node-order)
   (:documentation
    "Evaluate XPATH on TREE using BUILDER in the XPath adapter.
 
@@ -67,6 +68,9 @@
     value extracted from THING such as the value of a valued proxy
     node. The function must return a string representation of
     VALUE.
+
+    PEEK-FUNCTION behaves like the corresponding keyword parameter of
+    `architecture.builder-protocol:walk-nodes'.
 
     NODE-ORDER only has an effect if XPATH evaluates to a node set. In
     that case, NODE-ORDER controls whether/how the returned node set
@@ -99,10 +103,12 @@
 (defmethod evaluate ((xpath t) (builder t) (tree t)
                      &key
                      printers
+                     peek-function
                      (node-order :document-order))
   (let ((navigator (make-instance 'navigator
-                                  :builder  builder
-                                  :printers printers)))
+                                  :builder       builder
+                                  :peek-function peek-function
+                                  :printers      printers)))
     (evaluate-using-navigator xpath navigator tree :node-order node-order)))
 
 (defun evaluate-using-navigator (xpath navigator tree

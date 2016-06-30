@@ -43,7 +43,7 @@
 (defstruct (proxy (:constructor nil)
                   (:predicate nil)
                   (:copier nil))
-  (parent   nil #|:type proxy|#      :read-only t)
+  (parent   nil #|:type proxy|#)
   ;; Memoizes child pipe.
   (children nil :type (or null cons)))
 
@@ -73,9 +73,69 @@
   (or (proxy-children node)
       (setf (proxy-children node) (call-next-method))))
 
+(defun child-pipe (node relations value builder peek-function)
+  (declare (type (or null function) peek-function))
+  (labels ((pipe-step (relation current-targets current-args remainder)
+             (multiple-value-bind (relation* cardinality)
+                 (normalize-relation relation)
+               (cond
+                 ;; CURRENT-TARGETS and CURRENT-ARGS contain related
+                 ;; nodes and corresponding arguments for the current
+                 ;; relation RELATION => put the first into the pipe.
+                 (current-targets
+                  (flet ((yield (target args target-rest args-rest)
+                           (when peek-function
+                             (multiple-value-bind
+                                   (instead kind initargs relations new-builder)
+                                 (funcall peek-function
+                                          builder relation* args target)
+                               (case instead
+                                 ((t))  ; no change
+                                 ((nil) ; skip TARGET
+                                  (return-from yield
+                                    (pipe-step relation target-rest args-rest remainder)))
+                                 (t     ; replace TARGET with INSTEAD
+                                  (setf target (make-instead
+                                                instead
+                                                kind initargs relations
+                                                new-builder))))))
+                           (make-pipe
+                            (make-relation-proxy relation* target args node)
+                            (pipe-step relation target-rest args-rest remainder))))
+                    (cardinality-ecase cardinality
+                      ((1 ?)
+                       (yield current-targets current-args '() '()))
+                      ((* :map)
+                       (destructuring-bind (target &rest target-rest)
+                           current-targets
+                         (destructuring-bind (&optional args &rest args-rest)
+                             current-args
+                           (yield target args target-rest args-rest)))))))
+                 ;; CURRENT-TARGETS and CURRENT-ARGS and thus the
+                 ;; current relation RELATION, are exhausted, and
+                 ;; there are more relations in REMAINDER => continue
+                 ;; with next relation.
+                 (remainder
+                  (destructuring-bind (next &rest rest) remainder
+                    (multiple-value-bind (relation cardinality)
+                        (normalize-relation next)
+                      (multiple-value-bind (targets args)
+                          (node-relation builder relation value)
+                        (cardinality-case cardinality
+                          ((1 ?)
+                           (pipe-step next targets args rest))
+                          ((* :map)
+                           ;; TODO non-consing sequence iteration
+                           (pipe-step next (coerce targets 'list) (coerce args 'list) rest)))))))
+                 ;; Current relation is exhausted and there are no
+                 ;; more relations in REMAINDER => done.
+                 (t
+                  empty-pipe)))))
+    (pipe-step nil '() '() relations)))
+
 ;;; `document-proxy' class
 
-(defstruct (document-proxy (:include     proxy)
+(defstruct (document-proxy (:include     proxy (parent nil :read-only t))
                            (:constructor make-document-proxy (root))
                            (:predicate   nil)
                            (:copier      nil))
@@ -122,15 +182,64 @@
 (defmethod find-printer ((thing valued-proxy) (navigator navigator))
   (find-printer (valued-proxy-value thing) navigator))
 
+;;; `instead' class
+
+(defstruct (instead
+             (:include valued-proxy)
+             (:constructor make-instead (value kind initargs relations builder)))
+  (kind      nil            :read-only t)
+  (initargs  nil :type list :read-only t)
+  (relations nil :type list :read-only t)
+  (builder   nil            :read-only t))
+
+(defmethod node-type-p-using-navigator ((navigator navigator)
+                                        (node      instead)
+                                        (type      (eql :element)))
+  (not (stringp (instead-value node))))
+
+(defmethod node-type-p-using-navigator ((navigator navigator)
+                                        (node      instead)
+                                        (type      (eql :text)))
+  (stringp (instead-value node)))
+
+(defmethod local-name-using-navigator ((navigator navigator)
+                                       (node      instead))
+  (symbol->name (instead-kind node))) ; TODO allow customization
+
+(defmethod namespace-uri-using-navigator ((navigator navigator)
+                                          (node      instead))
+  (symbol->namespace (instead-kind node)))
+
+(defmethod hash-key-using-navigator ((navigator navigator)
+                                     (node      instead))
+  node)
+
+(defmethod attribute-pipe-using-navigator ((navigator navigator)
+                                           (node      instead))
+  (let ((initargs (instead-initargs node)))
+    (list->instance-pipe (initargs (name value &rest rest))
+      (make-attribute-proxy name value node))))
+
+(defmethod child-pipe-using-navigator ((navigator navigator)
+                                       (node      instead))
+  (let* ((builder       (or (instead-builder node)
+                            (navigator-builder navigator)))
+         (relations     (instead-relations node))
+         (value         (instead-value node))
+         (peek-function (navigator-peek-function navigator)))
+    (if relations
+        (child-pipe node relations value builder peek-function)
+        empty-pipe)))
+
 ;;; `node-poxy' class
 ;;;
 ;;; Instances wrap nodes of the tree structure mainly adding the
 ;;; ability to find the parent of a node.
 
-(defstruct (node-proxy (:include valued-proxy)
+(defstruct (node-proxy (:include     valued-proxy (parent nil :read-only t))
                        (:constructor make-node-proxy (value &optional parent))
-                       (:predicate nil)
-                       (:copier nil)))
+                       (:predicate   nil)
+                       (:copier      nil)))
 
 (defmacro with-node-proxy-access ((name-and-options (navigator proxy))
                                   &body body)
@@ -172,48 +281,8 @@
                                        (node      node-proxy))
   (with-node-proxy-access
       ((relations :builder builder :value value) (navigator node))
-    (labels ((pipe-step (relation current-targets current-args remainder)
-               (multiple-value-bind (relation* cardinality)
-                   (normalize-relation relation)
-                 (cond
-                   ;; CURRENT-TARGETS and CURRENT-ARGS contain related
-                   ;; nodes and corresponding arguments for the current
-                   ;; relation RELATION => put the first into the pipe.
-                   (current-targets
-                    (flet ((yield (target args target-rest args-rest)
-                             (make-pipe
-                              (make-relation-proxy relation* target args node)
-                              (pipe-step relation target-rest args-rest remainder))))
-                      (cardinality-ecase cardinality
-                        ((1 ?)
-                         (yield current-targets current-args '() '()))
-                        ((* :map)
-                         (destructuring-bind (target &rest target-rest)
-                             current-targets
-                           (destructuring-bind (&optional args &rest args-rest)
-                               current-args
-                             (yield target args target-rest args-rest)))))))
-                   ;; CURRENT-TARGETS and CURRENT-ARGS and thus the
-                   ;; current relation RELATION, are exhausted, and
-                   ;; there are more relations in REMAINDER => continue
-                   ;; with next relation.
-                   (remainder
-                    (destructuring-bind (next &rest rest) remainder
-                      (multiple-value-bind (relation cardinality)
-                          (normalize-relation next)
-                        (multiple-value-bind (targets args)
-                            (node-relation builder relation value)
-                          (cardinality-case cardinality
-                            ((1 ?)
-                             (pipe-step next targets args rest))
-                            ((* :map)
-                             ;; TODO non-consing sequence iteration
-                             (pipe-step next (coerce targets 'list) (coerce args 'list) rest)))))))
-                   ;; Current relation is exhausted and there are no
-                   ;; more relations in REMAINDER => done.
-                   (t
-                    empty-pipe)))))
-      (pipe-step nil '() '() relations))))
+    (let ((peek-function (navigator-peek-function navigator)))
+      (child-pipe node relations value builder peek-function))))
 
 ;;; `attribute-proxy'
 
@@ -247,7 +316,7 @@
 
 (defstruct (relation-proxy
             (:include proxy
-             (parent nil :type node-proxy :read-only t))
+             (parent nil :type (or node-proxy instead) :read-only t))
             (:constructor make-relation-proxy (relation target args parent))
             (:predicate nil)
             (:copier nil))
@@ -277,7 +346,14 @@
 
 (defmethod child-pipe-using-navigator ((navigator navigator)
                                        (node      relation-proxy))
-  (make-pipe (make-node-proxy (relation-proxy-target node) node) empty-pipe))
+  (let* ((target (relation-proxy-target node))
+         (proxy  (typecase target
+                   (instead
+                    (setf (instead-parent target) node)
+                    target)
+                   (t
+                    (make-node-proxy target node)))))
+   (make-pipe proxy empty-pipe)))
 
 ;;; Unwrap
 
@@ -297,6 +373,9 @@
 (defmethod unwrap ((navigator t) (proxy attribute-proxy))
   (cons (attribute-proxy-name proxy)
         (attribute-proxy-value proxy)))
+
+(defmethod unwrap ((navigator t) (proxy instead))
+  (instead-value proxy))
 
 (defmethod unwrap ((navigator t) (proxy string))
   proxy)

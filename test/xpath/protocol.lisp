@@ -20,12 +20,17 @@
                                :node-order :document-order))))
 
 (defun evaluate-test (cases)
-  (labels ((evaluate/unwrap (xpath document &rest args)
-             (let ((navigator (make-instance 'navigator :builder 'list)))
-               (unwrap navigator (apply #'evaluate-using-navigator
-                                        xpath navigator document args))))
+  (labels ((evaluate/unwrap (xpath-and-navigator-args document &rest args)
+             (destructuring-bind (xpath &rest navigator-args)
+                 (ensure-list xpath-and-navigator-args)
+               (let ((navigator (apply #'make-instance 'navigator
+                                       :builder 'list navigator-args)))
+                 (unwrap navigator (apply #'evaluate-using-navigator
+                                          xpath navigator document args)))))
            (equal/ (left right)
              (cond
+               ((not (and (typep left 'sequence) (typep right 'sequence)))
+                t)
                ((and (emptyp left) (emptyp right))
                 t)
                (t
@@ -171,6 +176,139 @@
      ("string(@bar)" (:foo () :bar 1)                "1")
      ("string(@bar)" (:foo () :bar "a")              "a")
      ("string(*)"    (:foo ((:bar . 1) ((:baz ())))) ""))))
+
+(test evaluate.peek-function
+  "Test supplying a \"peek function\" to the
+   `evaluate-using-navigator' function."
+
+  (labels ((instead-of-any (value)
+             (lambda (builder relation relations-args node)
+               (declare (ignore builder relation relations-args node))
+               value))
+           (instead-of-baz (value &rest values)
+             (lambda (builder relation relations-args node)
+               (declare (ignore builder relations-args node))
+               (if (eq relation :baz)
+                   (apply #'values value values)
+                   t))))
+    (evaluate-test
+     `(;; Normal behavior.
+       ,(let ((node '(:fez () :baz 1)))
+          `(("*/*" :peek-function ,(instead-of-any t))
+            (:foo (:baz ((,node))))
+            (,node)))
+
+       ;; Suppressing nodes.
+       ((".//*" :peek-function ,(instead-of-any nil))
+        (:foo (:baz ((:fez ()))))
+        ())
+
+       ((".//*" :peek-function ,(instead-of-baz nil))
+        (:foo (:baz (((:fez ())))))
+        ())
+
+       ((".//*" :peek-function ,(instead-of-baz nil))
+        (:foo ((:baz . 1) (((:fez ())))))
+        ())
+
+       ((".//*" :peek-function ,(instead-of-baz nil))
+        (:foo ((:baz . ?) (((:fez ())))))
+        ())
+
+       ((".//*" :peek-function ,(instead-of-baz nil))
+        (:foo ((:baz . *) (((:fez ())))))
+        ())
+
+       ((".//*" :peek-function ,(instead-of-baz nil))
+        (:foo ((:baz . (:map . :key)) (((:fez ()) :key 1))))
+        ())
+
+       ;; Replacing nodes with something else.
+       ((".//*" :peek-function ,(instead-of-any 5))
+        (:foo (:baz (((:fez ())))) :bar 1)
+        (:baz 5))
+
+       (("./baz/node()/.." :peek-function ,(instead-of-baz 5))
+        (:foo ((:baz . 1) (((:fez ())))) :bar 1)
+        (:baz))
+
+       ((".//*" :peek-function ,(instead-of-baz 5))
+        (:foo (:baz (((:fez ())))) :bar 1)
+        (:baz 5))
+
+       ((".//*" :peek-function ,(instead-of-baz 5))
+        (:foo ((:baz . 1) (((:fez ())))) :bar 1)
+        (:baz 5))
+
+       ((".//*" :peek-function ,(instead-of-baz 5))
+        (:foo ((:baz . ?) (((:fez ())))) :bar 1)
+        (:baz 5))
+
+       ((".//*" :peek-function ,(instead-of-baz 5))
+        (:foo ((:baz . *) (((:fez ())))) :bar 1)
+        (:baz 5))
+
+       ((".//*" :peek-function ,(instead-of-baz 5))
+        (:foo ((:baz . (:map . :key)) (((:fez ()) :key 1))) :bar 1)
+        (:baz 5))
+
+       (("string(./*/*)" :peek-function ,(instead-of-baz 5))
+        (:foo (:baz (((:fez ()) :key 1))) :bar 1)
+        "5")
+
+       ;; Replacing nodes with text.
+       ((".//node()" :peek-function ,(instead-of-any "test"))
+        (:foo (:baz (((:fez ())))) :bar 1)
+        (:baz "test"))
+
+       (("./baz/node()/.." :peek-function ,(instead-of-baz "test"))
+        (:foo (:baz (((:fez ())))) :bar 1)
+        (:baz))
+
+       ((".//node()" :peek-function ,(instead-of-baz "test"))
+        (:foo (:baz (((:fez ())))) :bar 1)
+        (:baz "test"))
+
+       ((".//node()" :peek-function ,(instead-of-baz "test"))
+        (:foo ((:baz . 1) (((:fez ())))) :bar 1)
+        (:baz "test"))
+
+       ((".//node()" :peek-function ,(instead-of-baz "test"))
+        (:foo ((:baz . ?) (((:fez ())))) :bar 1)
+        (:baz "test"))
+
+       ((".//node()" :peek-function ,(instead-of-baz "test"))
+        (:foo ((:baz . *) (((:fez ())))) :bar 1)
+        (:baz "test"))
+
+       ((".//node()" :peek-function ,(instead-of-baz "test"))
+        (:foo ((:baz . (:map . :key)) (((:fez ()) :key 1))) :bar 1)
+        (:baz "test"))
+
+       ((".//*" :peek-function ,(instead-of-baz "test"))
+        (:foo (:baz (((:fez ()) :key 1))) :bar 1)
+        (:baz))
+
+       ((".//text()" :peek-function ,(instead-of-baz "test"))
+        (:foo (:baz (((:fez ()) :key 1))) :bar 1)
+        ("test"))
+
+       (("string(.//text())" :peek-function ,(instead-of-baz "test"))
+        (:foo (:baz (((:fez ()) :key 1))) :bar 1)
+        "test")
+
+       ;; Replacing nodes with nodes.
+       ((".//node()"
+         :peek-function ,(instead-of-baz '(:fez2 (:tar2 (((:don2 () :wzp2 3)))) :who2 4)
+                                         :fez2 '(:who 4) '((:tar2 . *))))
+        (:foo (:baz (((:fez (:tar (((:don () :wzp 2)))) :who 2)))) :bar 1)
+        (:baz (:fez2 (:tar2 ((#1=(:don2 () :wzp2 3)))) :who2 4)
+         :tar2 #1#))
+       (("./baz/fez2/@who2"
+         :peek-function ,(instead-of-baz '(:fez2 (:tar2 (((:don2 () :wzp2 3)))) :who2 4)
+                                         :fez2 '(:who2 4) '((:tar2 . *))))
+        (:foo (:baz (((:fez (:tar (((:don () :wzp 2)))) :who 2)))) :bar 1)
+        ((:who2 . 4)))))))
 
 (test evaluate.printers
   "Test specifying print functions for certain nodes."

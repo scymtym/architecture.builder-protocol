@@ -11,22 +11,29 @@
 ;;; Provides default behaviors for all kinds of nodes.
 
 (defclass navigator ()
-  ((builder  :initarg  :builder
-             :reader   navigator-builder
-             :documentation
-             "Stores the builder that should be used for determining
-              node kinds, initargs and relations.")
-   (printers :type     list
-             :accessor navigator-%printers
-             :initform '()
-             :documentation
-             "A list of entries of the form
+  ((builder       :initarg  :builder
+                  :reader   navigator-builder
+                  :documentation
+                  "Stores the builder that should be used for
+                   determining node kinds, initargs and relations.")
+   (peek-function :type     (or null function)
+                  :reader   navigator-peek-function
+                  :accessor navigator-%peek-function
+                  :initform nil
+                  :documentation
+                  "Stores the \"peek function\" to use when traversing
+                   relation targets.")
+   (printers      :type     list
+                  :accessor navigator-%printers
+                  :initform '()
+                  :documentation
+                  "A list of entries of the form
 
-                (PREDICATE . PRINTER)
+                     (PREDICATE . PRINTER)
 
-              where PREDICATE can be called on a value to determine
-              whether PRINTER should be used to construct a textual
-              representation of the value."))
+                   where PREDICATE can be called on a value to
+                   determine whether PRINTER should be used to
+                   construct a textual representation of the value."))
   (:default-initargs
    :builder (required-argument :builder))
   (:documentation
@@ -42,7 +49,11 @@
 
 (defmethod shared-initialize :after ((instance navigator) (slot-names t)
                                      &key
-                                     (printers nil printers-supplied?))
+                                     (peek-function nil peek-function-supplied?)
+                                     (printers      nil printers-supplied?))
+  (when peek-function-supplied?
+    (setf (navigator-%peek-function instance)
+          (when peek-function (ensure-function peek-function))))
   (when printers-supplied?
     (setf (navigator-%printers instance) (prepare-printers printers))))
 
