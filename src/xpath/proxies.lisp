@@ -166,8 +166,7 @@
                          (destructuring-bind (&optional args &rest args-rest)
                              current-args
                            (make-pipe
-                            (make-relation-proxy
-                             relation* target args proxy)
+                            (make-relation-proxy relation* target args proxy)
                             (pipe-step relation target-rest args-rest remainder)))))))
                    ;; CURRENT-TARGETS and CURRENT-ARGS and thus the
                    ;; current relation RELATION, are exhausted, and
@@ -175,11 +174,17 @@
                    ;; with next relation.
                    (remainder
                     (destructuring-bind (next &rest rest) remainder
-                      (let ((relation (normalize-relation next)))
+                      (multiple-value-bind (relation cardinality)
+                          (normalize-relation next)
                         (multiple-value-bind (targets args)
                             (node-relation
                              builder relation (node-proxy-value proxy))
-                          (pipe-step next targets args rest)))))
+                          (cardinality-case cardinality
+                            ((1 ?)
+                             (pipe-step next targets args rest))
+                            ((* :map)
+                             ;; TODO non-consing sequence iteration
+                             (pipe-step next (coerce targets 'list) (coerce args 'list) rest)))))))
                    ;; Current relation is exhausted and there are no
                    ;; more relations in REMAINDER => done.
                    (t
