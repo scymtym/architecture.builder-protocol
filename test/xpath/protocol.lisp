@@ -85,29 +85,30 @@
    axis steps."
 
   (evaluate-test
-   (let* ((child      '(:fez ()))
+   (let* ((child-1    '(:fez ()))
+          (child-2    '(:fez ()))
           (relation   :bar)
-          (document-1 `(:foo (,relation ((,child)))))
-          (document-2 `(:foo (,relation ((,child) (,child))))))
+          (document-1 `(:foo (,relation ((,child-1)))))
+          (document-2 `(:foo (,relation ((,child-1) (,child-2))))))
      `(;; One child
-       ("bar/fez" ,document-1 ,(list child))
-       ("*/fez"   ,document-1 ,(list child))
-       ("bar/*"   ,document-1 ,(list child))
-       ("*/*"     ,document-1 ,(list child))
-       ("//fez"   ,document-1 ,(list child))
-       (".//*"    ,document-1 ,(list relation child))
-       ("//*"     ,document-1 ,(list document-1 relation child))
+       ("bar/fez" ,document-1 ,(list child-1))
+       ("*/fez"   ,document-1 ,(list child-1))
+       ("bar/*"   ,document-1 ,(list child-1))
+       ("*/*"     ,document-1 ,(list child-1))
+       ("//fez"   ,document-1 ,(list child-1))
+       (".//*"    ,document-1 ,(list relation child-1))
+       ("//*"     ,document-1 ,(list document-1 relation child-1))
        ;; Two children
-       ("bar/fez" ,document-2 ,(list child child))
-       ("*/fez"   ,document-2 ,(list child child))
-       ("bar/*"   ,document-2 ,(list child child))
-       ("*/*"     ,document-2 ,(list child child))
-       ("//fez"   ,document-2 ,(list child child))
-       (".//*"    ,document-2 ,(list relation relation
-                                     child child))
+       ("bar/fez" ,document-2 ,(list child-1 child-2))
+       ("*/fez"   ,document-2 ,(list child-1 child-2))
+       ("bar/*"   ,document-2 ,(list child-1 child-2))
+       ("*/*"     ,document-2 ,(list child-1 child-2))
+       ("//fez"   ,document-2 ,(list child-1 child-2))
+       (".//*"    ,document-2 ,(list relation child-1
+                                     relation child-2))
        ("//*"     ,document-2 ,(list document-2
-                                     relation relation
-                                     child child))))))
+                                     relation child-1
+                                     relation child-2))))))
 
 (test evaluate.string
   "Smoke test for the `evaluate' function on expressions calling the

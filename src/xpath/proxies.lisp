@@ -43,7 +43,22 @@
 (defstruct (proxy (:constructor nil)
                   (:predicate nil)
                   (:copier nil))
-  (parent nil #|:type proxy|# :read-only t))
+  (parent   nil #|:type proxy|#      :read-only t)
+  ;; Memoizes child pipe.
+  (children nil :type (or null cons)))
+
+;;; Since proxies can only be constructed by enumerating theirs
+;;; parents' children and child pipes are memoized, there should be no
+;;; way to obtain different proxy for any value or relation that
+;;; already has an associated proxy.
+(defmethod node-equal-using-navigator ((navigator navigator)
+                                       (node      proxy)
+                                       (other     proxy))
+  (eq node other))
+
+(defmethod hash-key-using-navigator ((navigator navigator)
+                                     (node      proxy))
+  node)
 
 (defmethod node-p-using-navigator ((navigator navigator)
                                    (proxy     proxy))
@@ -52,6 +67,11 @@
 (defmethod parent-node-using-navigator ((navigator navigator)
                                         (proxy     proxy))
   (proxy-parent proxy))
+
+(defmethod child-pipe-using-navigator :around ((navigator navigator)
+                                               (node      proxy))
+  (or (proxy-children node)
+      (setf (proxy-children node) (call-next-method))))
 
 ;;; `document-proxy' class
 
@@ -214,10 +234,6 @@
                                           (proxy     attribute-proxy))
   (symbol->namespace (attribute-proxy-name proxy)))
 
-(defmethod hash-key-using-navigator ((navigator navigator)
-                                     (proxy     attribute-proxy))
-  proxy)
-
 (defmethod child-pipe-using-navigator ((navigator navigator)
                                        (node      attribute-proxy))
   ;; This method is necessary for expressions likes @foo/bar.
@@ -232,6 +248,7 @@
             (:predicate nil)
             (:copier nil))
   (relation nil            :read-only t)
+  ;; The value to be stored in the `node-proxy' child of this node.
   (target   nil            :read-only t)
   (args     nil :type list :read-only t))
 
@@ -247,10 +264,6 @@
 (defmethod namespace-uri-using-navigator ((navigator navigator)
                                           (proxy     relation-proxy))
   (symbol->namespace (relation-proxy-relation proxy)))
-
-(defmethod hash-key-using-navigator ((navigator navigator)
-                                     (proxy     relation-proxy))
-  proxy)
 
 (defmethod attribute-pipe-using-navigator ((navigator navigator)
                                            (proxy     relation-proxy))
