@@ -8,6 +8,17 @@
 
 (in-suite :architecture.builder-protocol.xpath)
 
+(test evaluate.smoke
+  "Smoke test for the `evaluate' generic function."
+
+  ;; Just check that the basic interface works. Since `evaluate' is a
+  ;; thin wrapper around `evaluate-using-navigator', all in-depth
+  ;; testing is done for that function.
+  (is (string= "foo" (evaluate "name()" 'list '(:foo ())
+                               :node-order nil)))
+  (is (string= "foo" (evaluate "name()" 'list '(:foo ())
+                               :node-order :document-order))))
+
 (defun evaluate-test (cases)
   (labels ((evaluate/unwrap (xpath document &rest args)
              (let ((navigator (make-instance 'navigator :builder 'list)))
@@ -30,7 +41,8 @@
     (mapcar (curry #'apply #'test-case) cases)))
 
 (test evaluate.element
-  "Smoke test for the `evaluate' function on element nodes."
+  "Smoke test for the `evaluate-using-navigator' function on element
+   nodes."
 
   (evaluate-test
    `(,@(let ((node '(:foo ())))
@@ -44,7 +56,8 @@
      ("namespace-uri()" (+    ()) "common-lisp"))))
 
 (test evaluate.attribute
-  "Smoke test for the `evaluate' function attribute nodes."
+  "Smoke test for the `evaluate-using-navigator' function attribute
+   nodes."
 
   (evaluate-test
    `(("@bar"                   (:foo () :bar 1) ((:bar . 1)))
@@ -59,7 +72,8 @@
      ("@no-such-attribute/foo" (:foo () :bar 1) nil))))
 
 (test evaluate.relation
-  "Smoke test for the `evaluate' function on relation nodes."
+  "Smoke test for the `evaluate-using-navigator' function on relation
+   nodes."
 
   (evaluate-test
    (let* ((child    '(:fez ()))
@@ -83,8 +97,8 @@
        ("namespace-uri(*)" ,parent-3 "common-lisp")))))
 
 (test evaluate.relation.attribute
-  "Smoke test for the `evaluate' function on attribute nodes of
-   relations."
+  "Smoke test for the `evaluate-using-navigator' function on attribute
+   nodes of relations."
 
   (evaluate-test
    (let* ((child  '(:fez ()))
@@ -93,8 +107,8 @@
        ("bar/@dat"   ,parent ((:dat   . "2")))))))
 
 (test evaluate.axis
-  "Smoke test for the `evaluate' function on expressions with multiple
-   axis steps."
+  "Smoke test for the `evaluate-using-navigator' function on
+   expressions with multiple axis steps."
 
   (evaluate-test
    (let* ((child-1    '(:fez ()))
@@ -123,8 +137,9 @@
                                      relation child-2))))))
 
 (test evaluate.sorting
-  "Smoke test for the `evaluate' function on expressions the results
-   of which depend on whether document-order is requested."
+  "Smoke test for the `evaluate-using-navigator' function on
+   expressions the results of which depend on whether document-order
+   is requested."
 
   (evaluate-test
    (let* ((child-1  '(:fez-1 ()))
@@ -134,8 +149,8 @@
        ("union(bar/*, bar/*)"         ,document ,(list child-1 child-2))))))
 
 (test evaluate.string
-  "Smoke test for the `evaluate' function on expressions calling the
-   string function."
+  "Smoke test for the `evaluate-using-navigator' function on
+   expressions calling the string function."
 
   (evaluate-test
    `(("string()"     (:foo () :bar 1)                "(FOO NIL BAR 1)")
