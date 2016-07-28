@@ -36,9 +36,9 @@
 ;;; nodes of a tree structure or represent things as nodes that are
 ;;; not actually in the tree structure while an XPath query is
 ;;; evaluated on it. This is necessary because an implementation of
-;;; the (un)builder for a particular kind of tree structure may not
-;;; support certain required operations such as finding the parent of
-;;; a node.
+;;; the (un)builder protocol for a particular kind of tree structure
+;;; may not support certain required operations such as finding the
+;;; parent of a node.
 
 (defstruct (proxy (:constructor nil)
                   (:predicate nil)
