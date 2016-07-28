@@ -40,6 +40,20 @@
                                                    :node-order nil)))))
     (mapcar (curry #'apply #'test-case) cases)))
 
+(test evaluate.document
+  "Smoke test for the `evaluate-using-navigator' function on document
+   nodes."
+
+  (evaluate-test
+   `(,@(let ((node '(:foo ())))
+         `(("/" ,node (,node))))
+     ("name(/)"          (:foo ()) "")
+     ("local-name(/)"    (:foo ()) "")
+     ("namespace-uri(/)" (:foo ()) "")
+     ("/@*"              (:foo ()) ())
+     ,@(let ((node '(:foo ())))
+         `(("/*" ,node (,node)))))))
+
 (test evaluate.element
   "Smoke test for the `evaluate-using-navigator' function on element
    nodes."
