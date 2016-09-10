@@ -76,7 +76,7 @@
                                                 :fez (1))))
                            :finished? t)
                 (node (builder :foo)
-                  (? :bar (node* (:baz)) :fez (list 1)))))))
+                  (? :bar (node (builder :baz)) :fez (list 1)))))))
 
 (test node*.smoke
   "Smoke test for the `node*' macro."
