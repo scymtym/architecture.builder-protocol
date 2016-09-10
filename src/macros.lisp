@@ -25,21 +25,23 @@
      (node (:operator :which '+)
        (* :operand (list left right)))"
   (labels ((make-argument-list (args)
-             (cond
-               ((null args)
-                '())
-               ((every (rcurry #'constantp env) args)
-                `',(mapcar #'eval args))
-               (t
-                `(list ,@args))))
+             (let ((position (position-if-not (rcurry #'constantp env) args
+                                              :from-end t)))
+               (cond
+                 ((not position)                  ; all ARGS are constant in ENV
+                  `',(mapcar #'eval args))
+                 ((= position (1- (length args))) ; no ARGS are constant
+                  `(list ,@args))
+                 (t                               ; constant suffix up to POSITION
+                  `(list* ,@(subseq args 0 (1+ position))
+                          ',(mapcar #'eval (subseq args (1+ position))))))))
            (wrap-in-list (spec)
              (destructuring-bind (arity relation right &rest args) spec
-               `(list* ',arity ,relation ,right ,(make-argument-list args)))))
+               (make-argument-list
+                (list* `',arity `',relation right args)))))
     `(make+finish-node+relations
       ,builder ,kind ,(make-argument-list initargs)
-      ,(if relations
-           `(list ,@(mapcar #'wrap-in-list relations))
-           '()))))
+      ,(make-argument-list (mapcar #'wrap-in-list relations)))))
 
 (defmacro node* ((kind &rest initargs &key &allow-other-keys) &body relations)
   "Like `node' but uses `*builder*' instead of accepting a builder
