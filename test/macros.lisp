@@ -44,6 +44,8 @@
                 (node (builder :foo :bar 1))))
     (is (equalp (mock-node :foo :slots '(:bar (1)) :finished? t)
                 (node (builder :foo :bar (list 1))))) ; non-constant
+    (is (equalp (mock-node :foo :slots '(:bar (1)) :finished? t)
+                (node (builder :foo :bar '(1))))) ; quoted constant
     ;; Relation with ? cardinality.
     (is (equalp (mock-node :foo
                            :relations `((:bar (,(mock-node :baz :finished? t))))
@@ -76,7 +78,13 @@
                                                 :fez (1))))
                            :finished? t)
                 (node (builder :foo)
-                  (? :bar (node (builder :baz)) :fez (list 1)))))))
+                  (? :bar (node (builder :baz)) :fez (list 1)))))
+    (is (equalp (mock-node :foo
+                           :relations `((:bar (,(mock-node :baz :finished? t)
+                                                :fez (1))))
+                           :finished? t)
+                (node (builder :foo)
+                  (? :bar (node (builder :baz)) :fez '(1)))))))
 
 (test node*.smoke
   "Smoke test for the `node*' macro."
@@ -90,6 +98,8 @@
                 (node* (:foo :bar 1))))
     (is (equalp (mock-node :foo :slots '(:bar (1)) :finished? t)
                 (node* (:foo :bar (list 1))))) ; non-constant
+    (is (equalp (mock-node :foo :slots '(:bar (1)) :finished? t)
+                (node* (:foo :bar '(1))))) ; quoted constant
     ;; Relation with ? cardinality.
     (is (equalp (mock-node :foo
                            :relations `((:bar (,(mock-node :baz :finished? t))))
@@ -122,7 +132,13 @@
                                                 :fez (1))))
                            :finished? t)
                 (node* (:foo)
-                  (? :bar (node* (:baz)) :fez (list 1)))))))
+                  (? :bar (node* (:baz)) :fez (list 1)))))
+    (is (equalp (mock-node :foo
+                           :relations `((:bar (,(mock-node :baz :finished? t)
+                                                :fez (1))))
+                           :finished? t)
+                (node* (:foo)
+                  (? :bar (node* (:baz)) :fez '(1)))))))
 
 ;;; `with-unbuilder'
 

@@ -29,7 +29,7 @@
                ((null args)
                 '())
                ((every (rcurry #'constantp env) args)
-                `',args)
+                `',(mapcar #'eval args))
                (t
                 `(list ,@args))))
            (wrap-in-list (spec)
