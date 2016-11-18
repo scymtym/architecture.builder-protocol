@@ -20,9 +20,9 @@
                               (:file       "util")
                               (:file       "mixins")
                               (:file       "universal-builder"))))
-  :in-order-to ((test-op (test-op :architecture.builder-protocol.universal-builder-test))))
+  :in-order-to ((test-op (test-op :architecture.builder-protocol.universal-builder/test))))
 
-(defsystem :architecture.builder-protocol.universal-builder-test
+(defsystem :architecture.builder-protocol.universal-builder/test
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     (:read-file-form "version.sexp")
@@ -34,7 +34,7 @@
 
                 (:version :architecture.builder-protocol.universal-builder (:read-file-form "version.sexp"))
 
-                (:version :architecture.builder-protocol-test              (:read-file-form "version.sexp")))
+                (:version :architecture.builder-protocol/test              (:read-file-form "version.sexp")))
   :components  ((:module     "universal-builder"
                  :pathname   "test/universal-builder"
                  :components ((:file       "package")
@@ -42,5 +42,5 @@
                               (:file       "universal-builder")))))
 
 (defmethod perform ((op        test-op)
-                    (component (eql (find-system :architecture.builder-protocol.universal-builder-test))))
+                    (component (eql (find-system :architecture.builder-protocol.universal-builder/test))))
   (uiop:symbol-call '#:architecture.builder-protocol.universal-builder.test '#:run-tests))

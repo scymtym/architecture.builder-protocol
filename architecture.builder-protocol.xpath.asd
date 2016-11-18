@@ -22,9 +22,9 @@
                               (:file       "protocol")
                               (:file       "navigator")
                               (:file       "proxies"))))
-  :in-order-to ((test-op (test-op :architecture.builder-protocol.xpath-test))))
+  :in-order-to ((test-op (test-op :architecture.builder-protocol.xpath/test))))
 
-(defsystem :architecture.builder-protocol.xpath-test
+(defsystem :architecture.builder-protocol.xpath/test
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     (:read-file-form "version.sexp")
@@ -43,5 +43,5 @@
                               (:file       "protocol")))))
 
 (defmethod perform ((op        test-op)
-                    (component (eql (find-system :architecture.builder-protocol.xpath-test))))
+                    (component (eql (find-system :architecture.builder-protocol.xpath/test))))
   (uiop:symbol-call '#:architecture.builder-protocol.xpath.test '#:run-tests))

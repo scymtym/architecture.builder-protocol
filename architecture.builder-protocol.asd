@@ -23,9 +23,9 @@
                               (:file       "mixins")
                               (:file       "list-builder")
                               (:file       "top-down-forcing-builder"))))
-  :in-order-to ((test-op (test-op :architecture.builder-protocol-test))))
+  :in-order-to ((test-op (test-op :architecture.builder-protocol/test))))
 
-(defsystem :architecture.builder-protocol-test
+(defsystem :architecture.builder-protocol/test
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     (:read-file-form "version.sexp")
@@ -49,5 +49,5 @@
                               (:file       "top-down-forcing-builder")))))
 
 (defmethod perform ((op        test-op)
-                    (component (eql (find-system :architecture.builder-protocol-test))))
+                    (component (eql (find-system :architecture.builder-protocol/test))))
   (uiop:symbol-call '#:architecture.builder-protocol.test '#:run-tests))
