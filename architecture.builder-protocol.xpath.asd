@@ -32,7 +32,9 @@
   :description "Unit tests of the architecture.builder-protocol-xpath system."
   :depends-on  (:alexandria
 
-                (:version :fiveam "1.3"))
+                (:version :fiveam                              "1.3")
+
+                (:version :architecture.builder-protocol.xpath (:read-file-form "version.sexp")))
   :components  ((:module     "test"
                  :pathname   "test/xpath"
                  :serial     t
