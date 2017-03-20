@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Unit tests for protocol functions of the xpath module.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -176,6 +176,15 @@
      ("string(@bar)" (:foo () :bar 1)                "1")
      ("string(@bar)" (:foo () :bar "a")              "a")
      ("string(*)"    (:foo ((:bar . 1) ((:baz ())))) ""))))
+
+(test evaluate.count
+  "Smoke test for the `evaluate-using-navigator' function on
+   expressions calling the count function."
+
+  (evaluate-test
+   `(("count(@bar)"     (:foo () :bar 1)                         1)
+     ("count(//node())" (:foo ((:bar . 1) ((:bar ()))) :bar "a") 3)
+     ("count(*)"        (:foo ((:bar . 1) ((:bar ()))))          1))))
 
 (test evaluate.peek-function
   "Test supplying a \"peek function\" to the

@@ -1,6 +1,6 @@
 ;;;; proxies.lisp --- Proxy objects for using nodes in XPath evaluation contexts.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -377,8 +377,5 @@
 (defmethod unwrap ((navigator t) (proxy instead))
   (instead-value proxy))
 
-(defmethod unwrap ((navigator t) (proxy string))
-  proxy)
-
-(defmethod unwrap ((navigator t) (proxy null))
+(defmethod unwrap ((navigator t) (proxy t))
   proxy)
