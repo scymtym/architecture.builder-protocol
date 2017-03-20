@@ -186,6 +186,17 @@
      ("count(//node())" (:foo ((:bar . 1) ((:bar ()))) :bar "a") 3)
      ("count(*)"        (:foo ((:bar . 1) ((:bar ()))))          1))))
 
+(defclass switch-test-builder () ())
+
+(defmethod node-kind ((builder switch-test-builder) (node t))
+  :switch-test)
+
+(defmethod node-initargs ((builder switch-test-builder) (node t))
+  '(:switch :test))
+
+(defmethod node-relations ((builder switch-test-builder) (node t))
+  '())
+
 (test evaluate.peek-function
   "Test supplying a \"peek function\" to the
    `evaluate-using-navigator' function."
@@ -199,6 +210,12 @@
                (declare (ignore builder relations-args node))
                (if (eq relation :baz)
                    (apply #'values value values)
+                   t)))
+           (switch-builder-at-baz (new-builder)
+             (lambda (builder relation relations-args node)
+               (declare (ignore builder relations-args node))
+               (if (eq relation :baz)
+                   (values t nil nil nil new-builder)
                    t))))
     (evaluate-test
      `(;; Normal behavior.
@@ -317,7 +334,14 @@
          :peek-function ,(instead-of-baz '(:fez2 (:tar2 (((:don2 () :wzp2 3)))) :who2 4)
                                          :fez2 '(:who2 4) '((:tar2 . *))))
         (:foo (:baz (((:fez (:tar (((:don () :wzp 2)))) :who 2)))) :bar 1)
-        ((:who2 . 4)))))))
+        ((:who2 . 4)))
+
+        ;; Switch to a different builder.
+        (("./baz/switch-test//@*"
+          :peek-function ,(switch-builder-at-baz
+                           (make-instance 'switch-test-builder)))
+         (:foo (:baz (((:fez (:tar (((:don () :wzp 2)))) :who 2)))) :bar 1)
+         ((:switch . :test)))))))
 
 (test evaluate.printers
   "Test specifying print functions for certain nodes."

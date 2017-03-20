@@ -90,7 +90,14 @@
                                  (funcall peek-function
                                           builder relation* args target)
                                (case instead
-                                 ((t))  ; no change
+                                 ((t)   ; no change
+                                  (when new-builder
+                                    (setf target (make-instead
+                                                  target
+                                                  (node-kind new-builder target)
+                                                  (node-initargs new-builder target)
+                                                  (node-relations new-builder target)
+                                                  new-builder))))
                                  ((nil) ; skip TARGET
                                   (return-from yield
                                     (pipe-step relation target-rest args-rest remainder)))
