@@ -1,6 +1,6 @@
 ;;;; universal-builder.lisp --- (Un)builder for arbitrary standard-objects.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -24,7 +24,7 @@
                    (left     t)
                    (right    t)
                    &rest args &key)
-  (let ((relation-slots (nth-value 1 (class-scalar-and-relation-slots
+  (let ((relation-slots (nth-value 1 (class-initarg-and-relation-slots
                                       (class-of left)))))
     (destructuring-bind (name initarg type cardinality)
         (slot-information (or (find-slot-by-initarg relation relation-slots)
@@ -49,13 +49,13 @@
   (class-name (class-of node)))
 
 (defmethod node-initargs ((builder universal-builder) (node standard-object))
-  (loop :for slot :in (class-scalar-and-relation-slots (class-of node))
+  (loop :for slot :in (class-initarg-and-relation-slots (class-of node))
      :for (name initarg) = (slot-information slot)
      :when (slot-boundp node name)
      :collect initarg :and :collect (slot-value node name)))
 
 (defmethod node-relations ((builder universal-builder) (node standard-object))
-  (loop :for slot :in (nth-value 1 (class-scalar-and-relation-slots
+  (loop :for slot :in (nth-value 1 (class-initarg-and-relation-slots
                                     (class-of node)))
      :for (nil initarg nil cardinality) = (slot-information slot)
      :collect (cons initarg cardinality)))
@@ -63,7 +63,7 @@
 (defmethod node-relation ((builder  universal-builder)
                           (relation symbol)
                           (node     standard-object))
-  (let ((relation-slots (nth-value 1 (class-scalar-and-relation-slots
+  (let ((relation-slots (nth-value 1 (class-initarg-and-relation-slots
                                       (class-of node)))))
     (when-let ((slot (find-slot-by-initarg relation relation-slots)))
       (destructuring-bind (name initarg type cardinality)

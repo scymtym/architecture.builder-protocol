@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for tests of the universal-builder module.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -18,7 +18,7 @@
 
    #:slot-information
    #:slot-type->cardinality
-   #:class-scalar-and-relation-slots)
+   #:class-initarg-and-relation-slots)
 
   (:export
    #:run-tests)

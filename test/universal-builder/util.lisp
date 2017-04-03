@@ -1,6 +1,6 @@
 ;;;; universal-builder.lisp --- Tests for universal builder.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -47,15 +47,15 @@
           (list                                 *)
           (vector                               *))))
 
-(test class-scalar-and-relation-slots.smoke
-  "Smoke test for the `class-scalar-and-relation-slots' function."
+(test class-initarg-and-relation-slots.smoke
+  "Smoke test for the `class-initarg-and-relation-slots' function."
 
   (labels ((initarg (slot)
              (first (c2mop:slot-definition-initargs slot)))
-           (do-it (class-name expected-scalar expected-relation)
-             (multiple-value-bind (scalar-slots relation-slots)
-                 (class-scalar-and-relation-slots (find-class class-name))
-               (is (equal expected-scalar   (mapcar #'initarg scalar-slots)))
+           (do-it (class-name expected-initarg expected-relation)
+             (multiple-value-bind (initarg-slots relation-slots)
+                 (class-initarg-and-relation-slots (find-class class-name))
+               (is (equal expected-initarg  (mapcar #'initarg initarg-slots)))
                (is (equal expected-relation (mapcar #'initarg relation-slots))))))
     (do-it 'mock-object-1 '()          '())
     (do-it 'mock-object-2 '()          '())
