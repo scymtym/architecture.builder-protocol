@@ -1,6 +1,6 @@
 ;;;; macros.lisp --- Unit tests for macros provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -84,7 +84,18 @@
                                                 :fez (1))))
                            :finished? t)
                 (node (builder :foo)
-                  (? :bar (node (builder :baz)) :fez '(1)))))))
+                  (? :bar (node (builder :baz)) :fez '(1)))))
+    ;; Multiple relation arguments
+    (is (equalp (mock-node :foo
+                           :relations `((:bar (,(mock-node :baz :finished? t)
+                                                :fez (1))
+                                              (,(mock-node :who :finished? t)
+                                                :fez (2))))
+                           :finished? t)
+                (node (builder :foo)
+                  (* :bar (list (node (builder :baz))
+                                (node (builder :who)))
+                     :fez '((1) (2))))))))
 
 (test node*.smoke
   "Smoke test for the `node*' macro."
@@ -138,7 +149,18 @@
                                                 :fez (1))))
                            :finished? t)
                 (node* (:foo)
-                  (? :bar (node* (:baz)) :fez '(1)))))))
+                  (? :bar (node* (:baz)) :fez '(1)))))
+    ;; Multiple relation arguments
+    (is (equalp (mock-node :foo
+                           :relations `((:bar (,(mock-node :baz :finished? t)
+                                                :fez (1))
+                                              (,(mock-node :who :finished? t)
+                                                :fez (2))))
+                           :finished? t)
+                (node* (:foo)
+                  (* :bar (list (node* (:baz))
+                                (node* (:who)))
+                     :fez '((1) (2))))))))
 
 ;;; `with-unbuilder'
 

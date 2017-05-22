@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -132,6 +132,43 @@
 
 ;;; Convenience functions
 
+;;; This exists solely for efficiency reasons. Given keyword arguments
+;;; with sequences of values such as
+;;;
+;;;   (:KEY₁ (VALUE₁₁ VALUE₁₂ …) :KEY₂ (VALUE₂₁ VALUE₂₂ …) …)
+;;;
+;;; , it constructs a keyword argument list of the form
+;;;
+;;;   (:KEY₁ VALUE₁₁ :KEY₂ VALUE₂₁ …)
+;;;
+;;; and a function that destructive replaces each value with the next
+;;; value.
+(declaim (ftype (function (list) (values list (or null function) &optional))
+                make-keyword-arguments)
+         (inline make-keyword-arguments))
+(defun make-keyword-arguments (multi-keyword-argumens)
+  (let ((args             '())
+        (previous-cell    nil)
+        (previous-updater nil))
+    (doplist (key values multi-keyword-argumens)
+      (let ((cell (list key nil)))
+        (if previous-cell
+            (setf (cddr previous-cell) cell)
+            (setf args            cell))
+        (setf previous-cell cell
+              previous-updater
+              (let ((previous-updater previous-updater)
+                    (values           values))
+                (if previous-updater
+                    (locally
+                        (declare (type function previous-updater))
+                      (lambda ()
+                        (setf (cadr cell) (pop values))
+                        (funcall previous-updater)))
+                    (lambda ()
+                      (setf (cadr cell) (pop values))))))))
+    (values args previous-updater)))
+
 (defun add-relations (builder node relations)
   "Use BUILDER to add relations according to RELATIONS to NODE.
 
@@ -149,9 +186,9 @@
 
    *            RIGHT is a (possibly empty) sequence of nodes.
 
-   (:map . KEY) RIGHT is a single node that should be associated to
-                the mapping key that is the value of KEY in the ARGS
-                plist for RIGHT.
+   (:map . KEY) RIGHT is a (possible empty) sequence of nodes that
+                should be associated to the keys in the sequence that
+                is the value of KEY in the ARGS plist for RIGHT.
 
    RELATION-NAME does not have to be unique across the elements of
    RELATIONS. This allows multiple \"right\" nodes to be related to
@@ -159,12 +196,17 @@
    RELATIONS entries, potentially with different ARGS.
 
    The modified NODE or a new node is returned."
+  (declare (type list relations))
   (labels ((add-relation/one (relation left right args)
              (apply #'relate builder relation left right args))
            (add-relation/sequence (relation left right args)
-             (reduce (lambda (left right)
-                       (apply #'relate builder relation left right args))
-                     right :initial-value left))
+             (multiple-value-bind (keyword-args next)
+                 (make-keyword-arguments args)
+               (reduce (lambda (left right)
+                         (when next (funcall next))
+                         (apply #'relate builder relation left right
+                                keyword-args))
+                       right :initial-value left)))
            (add-relation (left spec)
              (destructuring-bind (cardinality relation right &rest args) spec
                (cardinality-ecase cardinality
@@ -173,11 +215,11 @@
                  (*
                   (add-relation/sequence relation left right args))
                  ((:map key)
-                  (unless (getf args key)
+                  (when (eq (getf args key :missing) :missing)
                     (error "~@<~S key ~S is missing in relation ~
                             arguments ~S.~@:>"
-                           :map key args))
-                  (add-relation/one relation left right args))))))
+                     :map key args))
+                  (add-relation/sequence relation left right args))))))
     (reduce #'add-relation relations :initial-value node)))
 
 (defun make+finish-node (builder kind &rest initargs

@@ -112,7 +112,7 @@
     (is (equalp (mock-node :foo :finished? nil)
                 (add-relations builder (mock-node :foo) '())))
     (is (equalp (mock-node :foo
-                           :relations `((:fez (,(mock-node :baz))) )
+                           :relations `((:fez (,(mock-node :baz))))
                            :finished? nil)
                 (add-relations
                  builder (mock-node :foo) `((1 :fez ,(mock-node :baz))))))
@@ -126,8 +126,8 @@
                            :relations `((:fez (,(mock-node :baz) :who 1)))
                            :finished? nil)
                 (add-relations
-                 builder (mock-node :foo) `(((:map . :who) :fez ,(mock-node :baz)
-                                             :who 1)))))
+                 builder (mock-node :foo) `(((:map . :who) :fez (,(mock-node :baz))
+                                             :who (1))))))
     ;; :map cardinality requires key to be present as relation
     ;; argument.
     (signals error
@@ -159,8 +159,8 @@
                            :relations `((:fez (,(mock-node :baz) :who 1)))
                            :finished? t)
                 (make+finish-node+relations
-                 builder :foo '() `(((:map . :who) :fez ,(mock-node :baz)
-                                     :who 1)))))
+                 builder :foo '() `(((:map . :who) :fez (,(mock-node :baz))
+                                     :who (1))))))
     ;; :map cardinality requires key to be present as relation
     ;; argument.
     (signals error

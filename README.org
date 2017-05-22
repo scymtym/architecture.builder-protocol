@@ -330,9 +330,9 @@
 
     *            RIGHT is a (possibly empty) sequence of nodes.
 
-    (:map . KEY) RIGHT is a single node that should be associated to
-    the mapping key that is the value of KEY in the ARGS
-    plist for RIGHT.
+    (:map . KEY) RIGHT is a (possible empty) sequence of nodes that
+    should be associated to the keys in the sequence that
+    is the value of KEY in the ARGS plist for RIGHT.
 
     RELATION-NAME does not have to be unique across the elements of
     RELATIONS. This allows multiple "right" nodes to be related to
