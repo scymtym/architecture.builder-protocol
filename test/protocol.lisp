@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Unit tests for the protocol of the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -220,7 +220,7 @@
          (multiple-value-bind (values calls)
              (record-un-build-calls #'walk-nodes builder tree)
            (is (equal expected-values values))
-           (is (equal expected-calls calls))))))
+           (is (equal expected-calls  calls))))))
 
    `(,(let ((node (mock-node :foo)))
         `(,node
@@ -258,7 +258,7 @@
 
      ,(let* ((node-1 (mock-node :foo))
              (node-2 (mock-node :bar
-                                 :relations `(((:baz2 . 1) . (,node-1))))))
+                                :relations `(((:baz2 . 1) . (,node-1))))))
         `(,node-2
           ((:foo))
           ((:visit nil   () ,node-2 :bar ((:baz2 . 1)) ())
