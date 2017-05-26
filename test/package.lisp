@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for unit tests of the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -72,10 +72,8 @@
                    (left     mock-node)
                    (right    mock-node)
                    &rest args)
-  (push (cons right args)
-        (cdr (or (assoc relation (mock-relations left))
-                 (first (push (cons relation '())
-                              (mock-relations left))))))
+  (appendf (assoc-value (mock-relations left) relation)
+           (list (cons right args)))
   left)
 
 (defmethod node-kind ((builder mock-builder)
