@@ -97,7 +97,7 @@
   (evaluate-test
    (let* ((child    '(:fez ()))
           (parent-1 `(:foo (:bar       ((,child)))))
-          (parent-2 `(:foo ((:bar . 1) (,child))))
+          (parent-2 `(:foo ((:bar . 1) ((,child)))))
           (parent-3 `(:foo (+          ((,child))))))
      `(("bar/fez"          ,parent-1 (,child))
        ("bar/fez"          ,parent-2 (,child))

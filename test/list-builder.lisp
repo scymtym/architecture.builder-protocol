@@ -1,6 +1,6 @@
 ;;;; list-builder.lisp --- Unit tests for the list-builder.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -98,7 +98,7 @@
     ;; One relation.
     (let* ((node-3 '(:fez ()))
            (node-2 `(:foo (:baz       ((,node-3 . (:who 2))))))
-           (node-1 `(:foo ((:baz . 1) (,node-3 . (:who 2))))))
+           (node-1 `(:foo ((:baz . 1) ((,node-3 . (:who 2)))))))
       (do-it node-2 :baz        `((,node-3) ((:who 2))))
       (do-it node-2 '(:baz . *) `((,node-3) ((:who 2))))
       (do-it node-2 '(:fez . 1) '(()))

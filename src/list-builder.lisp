@@ -91,6 +91,6 @@
     (when entries
       (cardinality-ecase cardinality
         ((1 ?)
-         (values (car entries) (cdr entries)))
+         (values (car (first entries)) (cdr (first entries))))
         ((* :map)
          (values (mapcar #'car entries) (mapcar #'cdr entries)))))))
