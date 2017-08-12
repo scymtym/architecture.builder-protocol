@@ -113,3 +113,71 @@
       (do-it node-1 :baz `((,node-2) ((:who 2))))
       (do-it node-1 :dot `((,node-3) ((:dat 3))))
       (do-it node-1 :fez '(())))))
+
+;;; "Roundtrip" tests
+
+(test list-builder.relations.roundtrip
+  "Roundtrip test for the `relate', `node-relations' and
+   `node-relation' methods."
+
+  (mapc (lambda (spec)
+          (destructuring-bind (relate-args expected) spec
+            (let* ((node (make-node 'list :foo))
+                   (seen '()))
+              (loop :for (relation right args) :in relate-args :do
+                   (setf node (apply #'relate 'list relation node right args)))
+              (loop :for relation :in (node-relations 'list node)
+                 :for (nodes args) = (multiple-value-list
+                                      (node-relation 'list relation node)) :do
+                   (push (list relation nodes args) seen))
+              (is (equal expected seen)))))
+
+        '(;; Implicit cardinality
+          (((:foo :bar (:fez 1)))
+           ((:foo (:bar) ((:fez 1)))))
+
+          (((:foo :bar ()) (:foo2 :bar2 ()))
+           ((:foo (:bar) (())) (:foo2 (:bar2) (()))))
+
+          (((:foo :bar ()) (:foo :bar2 ()))
+           ((:foo (:bar :bar2) (() ()))))
+
+          ;; Cardinality 1
+          ((((:foo . 1) :bar (:fez 1)))
+           (((:foo . 1) :bar (:fez 1))))
+
+          ((((:foo . 1) :bar ()) ((:foo2 . 1) :bar2 ()))
+           (((:foo . 1) :bar ()) ((:foo2 . 1) :bar2 ())))
+
+          ;; Cardinality ?
+          ((((:foo . ?) :bar (:fez 1)))
+           (((:foo . ?) :bar (:fez 1))))
+
+          ((((:foo . ?) :bar ()) ((:foo2 . ?) :bar2 ()))
+           (((:foo . ?) :bar ()) ((:foo2 . ?) :bar2 ())))
+
+          ;; Cardinality *
+          ((((:foo . *) :bar (:fez 1)))
+           (((:foo . *) (:bar) ((:fez 1)))))
+
+          ((((:foo  . *) :bar  (:fez 1))
+            ((:foo2 . *) :bar2 (:fez 2)))
+           (((:foo  . *) (:bar)  ((:fez 1)))
+            ((:foo2 . *) (:bar2) ((:fez 2)))))
+
+          ((((:foo . *) :bar  (:fez 1))
+            ((:foo . *) :bar2 (:fez 2)))
+           (((:foo . *) (:bar :bar2) ((:fez 1) (:fez 2)))))
+
+          ;; Cardinality (:map . :key)
+          ((((:foo . (:map . :key)) :bar (:key 1)))
+           (((:foo . (:map . :key)) (:bar) ((:key 1)))))
+
+          ((((:foo  . (:map . :key)) :bar  (:key 1))
+            ((:foo2 . (:map . :key)) :bar2 (:key 2)))
+           (((:foo  . (:map . :key)) (:bar)  ((:key 1)))
+            ((:foo2 . (:map . :key)) (:bar2) ((:key 2)))))
+
+          ((((:foo . (:map . :key)) :bar  (:key 1))
+            ((:foo . (:map . :key)) :bar2 (:key 2)))
+           (((:foo . (:map . :key)) (:bar :bar2) ((:key 1) (:key 2))))))))
