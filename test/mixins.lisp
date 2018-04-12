@@ -8,6 +8,20 @@
 
 (in-suite :architecture.builder-protocol)
 
+(test forwarding-mixin.smoke
+  "Smoke test for the `forwarding-mixin' class."
+
+  (let* ((target     'list)
+         (delegating (make-instance 'forwarding-mixin :target target)))
+    (is (equalp (multiple-value-list
+                 (with-builder (target)
+                   (node* (:foo :bar 1)
+                     (* :baz (list (node* (:fez)))))))
+                (multiple-value-list
+                 (with-builder (delegating)
+                   (node* (:foo :bar 1)
+                     (* :baz (list (node* (:fez)))))))))))
+
 (test delaying-mixin.smoke
   "Smoke test for the `delaying-mixin' class."
 

@@ -22,6 +22,65 @@
    "Intended to be mixed into builder classes that delegate certain
     operations to a \"target\" builder."))
 
+;;; `forwarding-mixin'
+;;;
+;;; A delegating builder mixin that forwards all (un)builder protocol
+;;; calls to the target builder.
+
+(defclass forwarding-mixin (delegating-mixin)
+  ()
+  (:documentation
+   "Intended to be mixed into builder classes that delegate all
+    operations to a \"target\" builder."))
+
+;;; `prepare' and `wrap' cannot be delegated naively all other methods
+;;; can.
+
+(defmethod prepare ((builder forwarding-mixin))
+  ;; The target builder's `prepare' method is allowed to return a new
+  ;; builder object.
+  (let* ((target     (target builder))
+         (new-target (prepare target)))
+    (unless (eq new-target target)
+      (setf (%target builder) new-target)))
+  builder)
+
+(defmethod wrap ((builder forwarding-mixin) (function t))
+  ;; Let the target builder perform its wrapping action but make sure
+  ;; to perform an "inner" wrapping using BUILDER. Otherwise,
+  ;; intercepting `make-node', `relate', etc. calls wouldn't work if
+  ;; the target builder, for example, binds `*builder*'.
+  (let ((target (target builder)))
+    (wrap target (lambda (new-target)
+                   (unless (eq new-target target)
+                     (setf (%target builder) new-target))
+                   (values-list (call-next-method))))))
+
+(macrolet ((define-delegation (name (&rest args))
+             (let* ((&rest        (position '&rest args))
+                    (args1        (subseq args 0 &rest))
+                    (rest         (when &rest (nth (1+ &rest) args)))
+                    (rest-args    (when &rest (subseq args &rest)))
+                    (specializers (map 'list (rcurry #'list 't) args1)))
+               `(defmethod ,name ((builder forwarding-mixin) ,@specializers ,@rest-args)
+                  ,(if rest
+                       `(apply #',name (target builder) ,@args1 ,rest)
+                       `(,name (target builder) ,@args1))))))
+  (define-delegation finish (result))
+
+  (define-delegation make-node (kind &rest initargs
+                                     &key &allow-other-keys))
+  (define-delegation finish-node (kind node))
+  (define-delegation relate (relation left right
+                                      &rest args &key &allow-other-keys))
+
+  (define-delegation node-kind (node))
+  (define-delegation node-initargs (node))
+  (define-delegation node-relations (node))
+  (define-delegation node-relation (relation node))
+
+  (define-delegation walk-nodes (function root)))
+
 ;;; Delayed nodes represent calls to `make-node', `relate',
 ;;; etc. Delayed nodes can be constructed in any order (parents before
 ;;; children, children before parents or some combination). The nodes

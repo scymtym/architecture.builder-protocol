@@ -63,6 +63,10 @@
 
    #:delegating-mixin)
 
+  ;; `forwarding-mixin'
+  (:export
+   #:forwarding-mixin)
+
   ;; `delaying-mixin'
   (:export
    #:delaying-mixin)
