@@ -7,7 +7,10 @@
    #:alexandria
 
    #:architecture.builder-protocol
-   #:esrap))
+   #:esrap)
+
+  (:shadowing-import-from #:esrap
+   #:?))
 
 (cl:in-package #:builder-protocol.example.esrap)
 
