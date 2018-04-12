@@ -1,6 +1,6 @@
 ;;;; top-down-forcing-builder.lisp --- Unit tests for the top-down-forcing-builder.
 ;;;;
-;;;; Copyright (C) 2015 Jan Moringen
+;;;; Copyright (C) 2015, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -12,8 +12,8 @@
   "Smoke test for the `top-down-forcing-builder'."
 
   (let* ((builder1 (make-instance 'call-recording-mock-builder))
-         (builder2 (make-instance 'top-down-forcing-builder
-                                  :target builder1))
+         (builder2 (prepare (make-instance 'top-down-forcing-builder
+                                           :target builder1)))
          (node2    (make-node builder2 :foo))
          (node1    (make-node builder2 :bar)))
     ;; Test return value, i.e. produce tree plus additional return
