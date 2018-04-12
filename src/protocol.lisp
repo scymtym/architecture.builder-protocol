@@ -533,6 +533,12 @@
 
   (define-abbreviation walk-nodes (function root)))
 
+;;; Delegation protocol
+
+(defgeneric target (builder)
+  (:documentation
+   "Return the builder to which BUILDER delegates."))
+
 ;;; Order forcing builder protocol
 
 (defgeneric builder-visit-function (builder)

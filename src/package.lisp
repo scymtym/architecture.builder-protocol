@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -56,6 +56,12 @@
   (:export
    #:call-with-unbuilder
    #:with-unbuilder)
+
+  ;; Delegation protocol and `delegating-mixin'
+  (:export
+   #:target
+
+   #:delegating-mixin)
 
   ;; `delaying-mixin'
   (:export
