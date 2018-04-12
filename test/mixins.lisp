@@ -12,8 +12,8 @@
   "Smoke test for the `delaying-mixin' class."
 
   (let* ((builder   (make-instance 'delaying-mixin))
-         (node2     (make-node builder :foo))
-         (node1     (make-node builder :bar))
+         (node2     (finish-node builder :foo (make-node builder :foo)))
+         (node1     (finish-node builder :bar (make-node builder :bar)))
          (expected1 (make-delayed-node :bar '()))
          (expected2 (make-delayed-node :foo '()))
          (relation  (make-delayed-relation :child expected2 '())))
