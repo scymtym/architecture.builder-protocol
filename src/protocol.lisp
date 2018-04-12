@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016, 2017 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -141,8 +141,8 @@
 ;;;
 ;;;   (:KEY₁ VALUE₁₁ :KEY₂ VALUE₂₁ …)
 ;;;
-;;; and a function that destructive replaces each value with the next
-;;; value.
+;;; and a function that destructively replaces each value with the
+;;; next value.
 (declaim (ftype (function (list) (values list (or null function) &optional))
                 make-keyword-arguments)
          (inline make-keyword-arguments))
