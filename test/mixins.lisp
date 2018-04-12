@@ -1,6 +1,6 @@
 ;;;; mixins.lisp --- Unit tests for builder mixins.
 ;;;;
-;;;; Copyright (C) 2016 Jan Moringen
+;;;; Copyright (C) 2016, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -17,7 +17,7 @@
          (expected1 (make-delayed-node :bar '()))
          (expected2 (make-delayed-node :foo '()))
          (relation  (make-delayed-relation :child expected2 '())))
-    (push relation (delayed-node-relations expected1 ))
+    (push relation (delayed-node-relations expected1))
     ;; Test return value, i.e. produce tree plus additional return
     ;; values.
     (is (equalp (list expected1 2)
