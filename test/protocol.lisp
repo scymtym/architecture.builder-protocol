@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Unit tests for the protocol of the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016, 2017 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -116,6 +116,16 @@
                            :finished? nil)
                 (add-relations
                  builder (mock-node :foo) `((1 :fez ,(mock-node :baz))))))
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz))))
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) `((? :fez ,(mock-node :baz))))))
+    (is (equalp (mock-node :foo
+                           :relations `()
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) `((? :fez nil)))))
     (is (equalp (mock-node :foo
                            :relations `((:fez (,(mock-node :baz))))
                            :finished? nil)

@@ -210,7 +210,11 @@
            (add-relation (left spec)
              (destructuring-bind (cardinality relation right &rest args) spec
                (cardinality-ecase cardinality
-                 ((1 ?)
+                 (?
+                  (if right
+                      (add-relation/one relation left right args)
+                      left))
+                 (1
                   (add-relation/one relation left right args))
                  (*
                   (add-relation/sequence relation left right args))
