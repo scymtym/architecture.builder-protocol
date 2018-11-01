@@ -1,6 +1,6 @@
 ;;;; macros.lisp --- Macros provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2014, 2015, 2016, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -9,7 +9,7 @@
 ;;; related to build protocol
 
 (defmacro node ((builder kind &rest initargs &key &allow-other-keys)
-                &body relations &environment env)
+                &body relations)
   "Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
 
    BUILDER, KIND and INITARGS are evaluated and passed to `make-node'.
@@ -25,10 +25,9 @@
      (node (:operator :which '+)
        (* :operand (list left right)))"
   (labels ((make-argument-list (args)
-             (let ((position (position-if-not (rcurry #'constantp env) args
-                                              :from-end t)))
+             (let ((position (position-if-not #'constantp args :from-end t)))
                (cond
-                 ((not position)                  ; all ARGS are constant in ENV
+                 ((not position)                  ; all ARGS are constant
                   `',(mapcar #'eval args))
                  ((= position (1- (length args))) ; no ARGS are constant
                   `(list ,@args))
