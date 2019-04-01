@@ -119,7 +119,7 @@
     #+RESULTS:
     : #<OPERATOR {100E5961}>
 
-    The following i a more compact (but equivalent behind the scenes)
+    The following is a more compact (but equivalent behind the scenes)
     spelling of the above code:
     #+BEGIN_SRC lisp :exports both :session "tutorial"
       (architecture.builder-protocol:with-builder ((make-instance 'ast-builder))
