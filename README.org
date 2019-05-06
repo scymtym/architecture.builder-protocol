@@ -251,6 +251,7 @@
     nodes built using the build protocol. It uses the "un-build"
     protocol and can thus handle arbitrary tree representations.
 * TODO Dictionary
+
   #+begin_src lisp :results none :exports none :session "doc"
     #.(progn
         #1=(ql:quickload '(:architecture.builder-protocol :alexandria :split-sequence))
@@ -263,28 +264,34 @@
         (format nil "~(~A~) ~<~{~A~^ ~}~:@>~2%~{~A~^~%~}"
                 symbol (list lambda-list) trimmed)))
   #+end_src
+
 ** STARTED Build Protocol
+
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:make-node 'function)
    #+end_src
 
    #+RESULTS:
-   : make-node BUILDER KIND &REST INITARGS &KEY &ALLOW-OTHER-KEYS
-   :
-   : Use BUILDER to make a result tree node of kind KIND and return it.
-   :
-   : As a convention, when supplied, the value of the :bounds keyword
-   : argument is of the form (START . END) and can be used to indicate
-   : the input range for which the tree is constructed.
+   #+begin_example
+   make-node BUILDER KIND &REST INITARGS &KEY &ALLOW-OTHER-KEYS
+
+   Use BUILDER to make a result tree node of kind KIND and return it.
+
+   As a convention, when supplied, the value of the :bounds keyword
+   argument is of the form (START . END) and can be used to indicate
+   the input range for which the tree is constructed.
+   #+end_example
 
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:finish-node 'function)
    #+end_src
 
    #+RESULTS:
-   : finish-node BUILDER KIND NODE
-   :
-   : Use BUILDER to perform finalization for NODE and return NODE.
+   #+begin_example
+   finish-node BUILDER KIND NODE
+
+   Use BUILDER to perform finalization for NODE and return NODE.
+   #+end_example
 
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:relate 'function)
@@ -303,9 +310,10 @@
 
    In a typical case, RELATION could be :child, LEFT being the parent
    node and RIGHT being the child node.
-#+end_example
+   #+end_example
 
 *** STARTED Convenience Functions
+
     #+BEGIN_SRC lisp :exports results :session "doc"
       (doc 'architecture.builder-protocol:add-relations 'function)
     #+END_SRC
@@ -340,57 +348,65 @@
     RELATIONS entries, potentially with different ARGS.
 
     The modified NODE or a new node is returned.
-#+end_example
+    #+end_example
 
     #+BEGIN_SRC lisp :exports results :session "doc"
       (doc 'architecture.builder-protocol:make+finish-node 'function)
     #+END_SRC
 
     #+RESULTS:
-    : make+finish-node BUILDER KIND &REST INITARGS &KEY &ALLOW-OTHER-KEYS
-    :
-    : Convenience function for constructing and immediately finishing a
-    : node.
+    #+begin_example
+    make+finish-node BUILDER KIND &REST INITARGS &KEY &ALLOW-OTHER-KEYS
+
+    Convenience function for constructing and immediately finishing a
+    node.
+    #+end_example
 
     #+BEGIN_SRC lisp :exports results :session "doc"
       (doc 'architecture.builder-protocol:make+finish-node+relations 'function)
     #+END_SRC
 
     #+RESULTS:
-    : make+finish-node+relations BUILDER KIND INITARGS RELATIONS
-    :
-    : Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
-    :
-    : RELATIONS is processed as described for `add-relations'.
-    :
-    : `finish-node' is called on the created node. The created node is
-    : returned.
+    #+begin_example
+    make+finish-node+relations BUILDER KIND INITARGS RELATIONS
+
+    Use BUILDER to create a KIND, INITARGS node, relate it via RELATIONS.
+
+    RELATIONS is processed as described for `add-relations'.
+
+    `finish-node' is called on the created node. The created node is
+    returned.
+    #+end_example
 
 ** STARTED "Un-build" Protocol
+
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-kind 'function)
    #+end_src
 
    #+RESULTS:
-   : node-kind BUILDER NODE
-   :
-   : Return the kind of NODE w.r.t. BUILDER.
-   :
-   : The return value is EQ to the KIND argument used to create NODE
-   : with BUILDER.
+   #+begin_example
+   node-kind BUILDER NODE
 
+   Return the kind of NODE w.r.t. BUILDER.
+
+   The return value is EQ to the KIND argument used to create NODE
+   with BUILDER.
+   #+end_example
 
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-initargs 'function)
    #+end_src
 
    #+RESULTS:
-   : node-initargs BUILDER NODE
-   :
-   : Return a plist of initargs for NODE w.r.t. BUILDER.
-   :
-   : The returned list is EQUAL to the list of keyword arguments pass
-   : to the MAKE-NODE call that, using BUILDER, constructed NODE.
+   #+begin_example
+   node-initargs BUILDER NODE
+
+   Return a plist of initargs for NODE w.r.t. BUILDER.
+
+   The returned list is EQUAL to the list of keyword arguments pass
+   to the MAKE-NODE call that, using BUILDER, constructed NODE.
+   #+end_example
 
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-relations 'function)
@@ -432,22 +448,24 @@
 
    . This cardinality information is reflected by the return values
    of (node-relation BUILDER RELATION-NAME NODE).
-#+end_example
+   #+end_example
 
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:node-relation 'function)
    #+end_src
 
    #+RESULTS:
-   : node-relation BUILDER RELATION NODE
-   :
-   : Return two values: 1) a list of nodes related to NODE via RELATION
-   : w.r.t. BUILDER 2) a same-length list of arguments of the
-   : relations.
-   :
-   : Each element in the list of relation arguments is EQUAL to the
-   : list of arguments passed to the RELATE call that, using BUILDER,
-   : established the relation between NODE and the related node.
+   #+begin_example
+   node-relation BUILDER RELATION NODE
+
+   Return two values: 1) a sequence of nodes related to NODE via
+   RELATION w.r.t. BUILDER 2) `nil' or a same-length sequence of
+   arguments of the relations.
+
+   Each element in the sequence of relation arguments is EQUAL to the
+   list of arguments passed to the RELATE call that, using BUILDER,
+   established the relation between NODE and the related node.
+   #+end_example
 
    #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:walk-nodes 'function)
@@ -503,21 +521,22 @@
 
    (i.e. it does not receive kind, initargs or relations). This
    function can control whether NODE should be processed normally,
-   replaced with something else, processed with different builder or
-   ignored: Its return values are interpreted as follows:
+   replaced with something else, processed with a different builder
+   or ignored: Its return values are interpreted as follows:
 
    NIL
 
-   Store processing of NODE, in particular do not call `node-kind',
-   `node-relations', `node-initargs' or the walk function for NODE.
+   Forego processing of NODE, in particular do not call
+   `node-kind', `node-relations', `node-initargs' or the walk
+   function for NODE.
 
    T [* * * BUILDER]
 
    Continue processing as if there was no "peeking" function.
 
    If non-NIL, BUILDER specifies a builder that should be used
-   instead of the current builder to process the current node and
-   its ancestors.
+   instead of the current builder to process the NODE and its
+   ancestors.
 
    INSTEAD KIND INITARGS RELATIONS [BUILDER]
 
@@ -533,7 +552,7 @@
    Depending on FUNCTION, potentially return a list-of-lists of the
    same shape as the traversed tree containing return values of
    FUNCTION.
-#+end_example
+   #+end_example
 
 * Settings                                                         :noexport:
 
