@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016, 2017, 2018 Jan Moringen
+;;;; Copyright (C) 2014-2019 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -503,10 +503,11 @@
 ;;; Abbreviated versions of build, "un-build" and `walk-nodes' methods
 
 (macrolet ((define-abbreviation (name (&rest args))
-             (let* ((name* (symbolicate name '#:*))
-                    (&rest (position '&rest args))
-                    (args1 (subseq args 0 &rest))
-                    (rest  (when &rest (nth (1+ &rest) args))))
+             (let* ((name*          (symbolicate name '#:*))
+                    (&rest-position (position '&rest args))
+                    (args1          (subseq args 0 &rest-position))
+                    (rest           (when &rest-position
+                                      (nth (1+ &rest-position) args))))
                `(defun ,name* ,args
                   ,(format nil "Like `~(~A~)' but uses `*builder*' ~
                                 instead of accepting a builder ~

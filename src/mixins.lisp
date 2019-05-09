@@ -1,6 +1,6 @@
 ;;;; mixins.lisp --- Mixin classes for builder classes.
 ;;;;
-;;;; Copyright (C) 2016, 2018 Jan Moringen
+;;;; Copyright (C) 2016, 2018, 2019 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -57,10 +57,12 @@
                    (values-list (call-next-method))))))
 
 (macrolet ((define-delegation (name (&rest args))
-             (let* ((&rest        (position '&rest args))
-                    (args1        (subseq args 0 &rest))
-                    (rest         (when &rest (nth (1+ &rest) args)))
-                    (rest-args    (when &rest (subseq args &rest)))
+             (let* ((&rest-position (position '&rest args))
+                    (args1          (subseq args 0 &rest-position))
+                    (rest         (when &rest-position
+                                    (nth (1+ &rest-position) args)))
+                    (rest-args    (when &rest-position
+                                    (subseq args &rest-position)))
                     (specializers (map 'list (rcurry #'list 't) args1)))
                `(defmethod ,name ((builder forwarding-mixin) ,@specializers ,@rest-args)
                   ,(if rest
