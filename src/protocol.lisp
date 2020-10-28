@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014-2019 Jan Moringen
+;;;; Copyright (C) 2014-2020 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -146,11 +146,11 @@
 (declaim (ftype (function (list) (values list (or null function) &optional))
                 make-keyword-arguments)
          (inline make-keyword-arguments))
-(defun make-keyword-arguments (multi-keyword-argumens)
+(defun make-keyword-arguments (multi-keyword-arguments)
   (let ((args             '())
         (previous-cell    nil)
         (previous-updater nil))
-    (doplist (key values multi-keyword-argumens)
+    (doplist (key values multi-keyword-arguments)
       (let ((cell (list key nil)))
         (if previous-cell
             (setf (cddr previous-cell) cell)
