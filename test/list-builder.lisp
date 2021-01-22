@@ -1,6 +1,6 @@
 ;;;; list-builder.lisp --- Unit tests for the list-builder.
 ;;;;
-;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
+;;;; Copyright (C) 2015-2021 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -122,15 +122,14 @@
 
   (mapc (lambda (spec)
           (destructuring-bind (relate-args expected) spec
-            (let* ((node (make-node 'list :foo))
-                   (seen '()))
-              (loop :for (relation right args) :in relate-args :do
-                   (setf node (apply #'relate 'list relation node right args)))
-              (loop :for relation :in (node-relations 'list node)
-                 :for (nodes args) = (multiple-value-list
-                                      (node-relation 'list relation node)) :do
-                   (push (list relation nodes args) seen))
-              (is (equal expected seen)))))
+            (let* ((node (make-node 'list :foo)))
+              (loop :for (relation right args) :in relate-args
+                    :do (setf node (apply #'relate 'list relation node right args)))
+              (let ((seen (loop :for relation :in (node-relations 'list node)
+                                :for (nodes args) = (multiple-value-list
+                                                     (node-relation 'list relation node))
+                                :collect (list relation nodes args))))
+                (is (equal expected seen))))))
 
         '(;; Implicit cardinality
           (((:foo :bar (:fez 1)))

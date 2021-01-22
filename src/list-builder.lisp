@@ -1,6 +1,6 @@
 ;;;; list-builder.lisp --- Represents constructed results as nested lists.
 ;;;;
-;;;; Copyright (C) 2014, 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2014-2021 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -55,7 +55,19 @@
 
 (defmethod relate ((builder (eql 'list)) (relation t) (left t) (right t)
                    &rest args &key)
-  (appendf (getf (second left) relation) (list (cons right args)))
+  (let* ((relations (second left))
+         (cell      (if relations
+                        (loop :for previous-cell = nil :then cell
+                              :for cell :on relations :by #'cddr
+                              :when (equal (first cell) relation)
+                              :do (return cell)
+                              :finally (let ((new-cell (list relation '())))
+                                         (setf (cddr previous-cell) new-cell)
+                                         (return new-cell)))
+                        (let ((new-cell (list relation '())))
+                          (setf (second left) new-cell)
+                          new-cell))))
+    (appendf (second cell) (list (cons right args))))
   left)
 
 (defmethod relate ((builder (eql 'list)) (relation t) (left t) (right null) &key)
