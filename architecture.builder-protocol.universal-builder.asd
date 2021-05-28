@@ -23,7 +23,7 @@
                               (:file       "universal-builder"))))
   :in-order-to ((test-op (test-op "architecture.builder-protocol.universal-builder/test"))))
 
-(defsystem :architecture.builder-protocol.universal-builder/test
+(defsystem "architecture.builder-protocol.universal-builder/test"
   :description "Unit tests of the architecture.builder-protocol.universal-builder system."
   :license     "LGPLv3" ; see COPYING file for details
   :author      #1="Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
