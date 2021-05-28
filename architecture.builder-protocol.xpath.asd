@@ -1,12 +1,12 @@
 ;;;; architecture.builder-protocol-xpath.asd --- System definition of architecture.builder-protocol-xpath system.
 ;;;;
-;;;; Copyright (C) 2015, 2016, 2018, 2019 Jan Moringen
+;;;; Copyright (C) 2015-2021 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
 (defsystem "architecture.builder-protocol.xpath"
   :description "Query node trees using XPath expressions."
-  :license     "LLGPLv3" ; see COPYING file for details
+  :license     "LGPLv3" ; see COPYING file for details
   :author      #1="Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  #1#
 
@@ -28,7 +28,7 @@
 
 (defsystem "architecture.builder-protocol.xpath/test"
   :description "Unit tests of the architecture.builder-protocol-xpath system."
-  :license     "LLGPLv3"                ; see COPYING file for details
+  :license     "LGPLv3" ; see COPYING file for details
   :author      #1="Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  #1#
 

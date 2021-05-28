@@ -1,12 +1,12 @@
 ;;;; architecture.builder-protocol.json.asd --- System definition of architecture.builder-protocol.json system.
 ;;;;
-;;;; Copyright (C) 2015, 2016, 2018, 2019 Jan Moringen
+;;;; Copyright (C) 2015-2021 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
 (defsystem "architecture.builder-protocol.json"
   :description "Serialize node trees into JSON documents."
-  :license     "LLGPLv3"                ; see COPYING file for details
+  :license     "LGPLv3" ; see COPYING file for details
   :author      #1="Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  #1#
 
@@ -25,7 +25,7 @@
 
 (defsystem "architecture.builder-protocol.json/test"
   :description "Unit tests of the architecture.builder-protocol.json system."
-  :license     "LLGPLv3"                ; see COPYING file for details
+  :license     "LGPLv3" ; see COPYING file for details
   :author      #1="Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  #1#
 

@@ -1,12 +1,12 @@
 ;;;; architecture.builder-protocol.asd --- System definition of architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2012-2019 Jan Moringen
+;;;; Copyright (C) 2012-2021 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
 (defsystem "architecture.builder-protocol"
   :description "Protocol and framework for building parse results and other object graphs."
-  :license     "LLGPLv3"                ; see COPYING file for details
+  :license     "LGPLv3" ; see COPYING file for details
   :author      #1="Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  #1#
 
@@ -30,7 +30,7 @@
 
 (defsystem "architecture.builder-protocol/test"
   :description "Unit tests of the architecture.builder-protocol system."
-  :license     "LLGPLv3"                ; see COPYING file for details
+  :license     "LGPLv3" ; see COPYING file for details
   :author      #1="Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  #1#
 
