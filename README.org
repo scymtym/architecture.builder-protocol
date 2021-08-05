@@ -177,6 +177,41 @@
                                               :bounds (cons start end)))))))
           (expression)))
     #+end_src
+    As before, the various builder method calls can be written
+    compactly using the =node= macro:
+    #+begin_src lisp :results silent :exports code :session "tutorial"
+      (defun parse2 (stream builder)
+        (labels ((expression ()
+                   (let ((c (peek-char nil stream)))
+                     (cond ((char= c #\+)
+                            (operator))
+                           ((digit-char-p c)
+                            (literal)))))
+                 (literal ()
+                   (let ((start (stream-file-position stream))
+                         (c     (read-char stream)))
+                     (architecture.builder-protocol:node
+                         (builder :literal :value  (parse-integer (string c))
+                                           :bounds (cons start (1+ start))))))
+                 (operator ()
+                   (let ((start    (stream-file-position stream))
+                         (c        (read-char stream))
+                         (operands (list (expression) (expression)))
+                         (end      (stream-file-position stream)))
+                     (declare (ignore c))
+                     (architecture.builder-protocol:node
+                         (builder :operator :bounds (cons start end))
+                       (* :operand operands)))))
+          (expression)))
+    #+end_src
+    The =with-builder= macro allows writing the =node= macro calls
+    without supplying the =builder= argument:
+    #+begin_src lisp
+      (architecture.builder-protocol:with-builder (BUILDER)
+        (architecture.builder-protocol:node* (:KIND :INITARG …)
+          (* :RELATION …)))
+    #+end_src
+
 
 *** The =list= Builder
     When developing or testing result producers like parsers, it can be
