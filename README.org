@@ -53,6 +53,7 @@
    The example code in the following sections can be loaded into the
    =cl-user= package and assumes that the =alexandria= system is
    loaded.
+
 *** Implementing a Consumer of Results
     The nodes of the AST we want to construct are either literals or
     operator applications with two operands and are both expressions:
@@ -60,10 +61,10 @@
       (defclass expression () ())
 
       (defclass literal (expression)
-        ((value :initarg :value :reader literal-value)))
+        ((%value :initarg :value :reader literal-value)))
 
       (defclass operator (expression)
-        ((operands :accessor operator-operands :initform '())))
+        ((%operands :accessor operator-operands :initform '())))
     #+end_src
     Note that the =value= slot of the =literal= is initialized using
     the =:value= initarg while the =operands= slot of the =operator=
@@ -93,7 +94,7 @@
 
       (defmethod architecture.builder-protocol:relate
           ((builder  ast-builder)
-           (relation (eql :operator-operand))
+           (relation (eql :operand))
            (left     operator)
            (right    expression)
            &key)
@@ -112,7 +113,7 @@
                  builder :operator
                  (reduce (lambda (l r)
                            (architecture.builder-protocol:relate
-                            builder :operator-operand l r))
+                            builder :operand l r))
                          operands :initial-value operator)))
     #+end_src
 
@@ -121,12 +122,12 @@
 
     The following is a more compact (but equivalent behind the scenes)
     spelling of the above code:
-    #+BEGIN_SRC lisp :exports both :session "tutorial"
+    #+begin_src lisp :exports both :session "tutorial"
       (architecture.builder-protocol:with-builder ((make-instance 'ast-builder))
         (architecture.builder-protocol:node* (:operator)
-          (* :operator-operand (list (architecture.builder-protocol:node* (:literal :value 5))
-                                     (architecture.builder-protocol:node* (:literal :value 6))))))
-    #+END_SRC
+          (* :operand (list (architecture.builder-protocol:node* (:literal :value 5))
+                            (architecture.builder-protocol:node* (:literal :value 6))))))
+    #+end_src
 
     #+RESULTS:
     : #<OPERATOR {1019F0E013}>
@@ -144,15 +145,14 @@
     previous example. Since we now parse an actual source text, source
     locations of constructed result nodes can be recorded using the
     =:bounds= initarg.
-    #+begin_src lisp :exports code :session "tutorial"
+    #+begin_src lisp :results silent :exports code :session "tutorial"
       (defun parse (stream builder)
         (labels ((expression ()
                    (let ((c (peek-char nil stream)))
-                     (cond
-                       ((char= c #\+)
-                        (operator))
-                       ((digit-char-p c)
-                        (literal)))))
+                     (cond ((char= c #\+)
+                            (operator))
+                           ((digit-char-p c)
+                            (literal)))))
                  (literal ()
                    (let ((start (stream-file-position stream))
                          (c     (read-char stream)))
@@ -177,6 +177,7 @@
                                               :bounds (cons start end)))))))
           (expression)))
     #+end_src
+
 *** The =list= Builder
     When developing or testing result producers like parsers, it can be
     convenient to produce a list-based result since it pretty-prints
@@ -246,10 +247,12 @@
      :     VALUE: 3
 
 ** TODO "Un-build" Protocol
+
 *** STARTED The =walk-nodes= Function
     The generic function =walk-nodes= can be used to traverse trees of
     nodes built using the build protocol. It uses the "un-build"
     protocol and can thus handle arbitrary tree representations.
+
 * TODO Dictionary
 
   #+begin_src lisp :results none :exports none :session "doc"
