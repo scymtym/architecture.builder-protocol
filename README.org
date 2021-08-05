@@ -144,7 +144,12 @@
     element of the grammar and uses the builder protocol like in the
     previous example. Since we now parse an actual source text, source
     locations of constructed result nodes can be recorded using the
-    =:bounds= initarg.
+    =:bounds= initarg. Note that the =ast-builder= we defined in the
+    previous section receives the =:bounds= initarg in =make-node=
+    calls, but does not store it anywhere. If storing source locations
+    in AST nodes was desired, a =%source= slot could be added to the
+    =expression= class and the value of the =:bounds= keyword argument
+    could be passed to =make-instance= as the =:source= initarg.
     #+begin_src lisp :results silent :exports code :session "tutorial"
       (defun parse (stream builder)
         (labels ((expression ()
