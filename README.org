@@ -101,7 +101,7 @@
         (alexandria:appendf (operator-operands left) (list right))
         left)
     #+end_src
-    We can already use this without the corresponding parser:
+    We can already use this builder without a parser:
     #+begin_src lisp :exports both :session "tutorial"
       (let* ((builder  (make-instance 'ast-builder))
              (operands (list (architecture.builder-protocol:make+finish-node
@@ -109,12 +109,12 @@
                              (architecture.builder-protocol:make+finish-node
                               builder :literal :value 6)))
              (operator (architecture.builder-protocol:make-node builder :operator)))
-                (architecture.builder-protocol:finish-node
-                 builder :operator
-                 (reduce (lambda (l r)
-                           (architecture.builder-protocol:relate
-                            builder :operand l r))
-                         operands :initial-value operator)))
+        (architecture.builder-protocol:finish-node
+         builder :operator
+         (reduce (lambda (l r)
+                   (architecture.builder-protocol:relate
+                    builder :operand l r))
+                 operands :initial-value operator)))
     #+end_src
 
     #+RESULTS:
