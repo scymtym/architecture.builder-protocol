@@ -455,27 +455,34 @@
              (t
               (setf node instead)))
            (flet ((recurse (&key (relations relations) (function walk-function))
-                    (loop :for relation-and-cardinality :in relations :collect
-                       (multiple-value-bind (relation cardinality)
-                           (normalize-relation relation-and-cardinality)
-                         (multiple-value-bind (targets args)
-                             (node-relation builder relation node)
-                           (cardinality-ecase cardinality
-                             (?
-                              (when targets
-                                (walk-node function builder
-                                           relation args targets)))
-                             (1
-                              (walk-node function builder
-                                         relation args targets))
-                             ((* :map)
-                              (when targets
-                                (map 'list
-                                     (curry #'walk-node
-                                            function builder relation)
-                                     (or args (load-time-value
-                                               (circular-list '()) t))
-                                     targets)))))))))
+                    (loop :for relation-and-cardinality :in relations
+                          :collect (multiple-value-bind (relation cardinality)
+                                       (normalize-relation relation-and-cardinality)
+                                     (multiple-value-bind (targets args)
+                                         (node-relation builder relation node)
+                                       (cardinality-ecase cardinality
+                                         (?
+                                          (when targets
+                                            (walk-node function builder
+                                                       relation args targets)))
+                                         (1
+                                          (walk-node function builder
+                                                     relation args targets))
+                                         ((* :map)
+                                          (cond ((null targets)
+                                                 '())
+                                                ((null args)
+                                                 (map 'list
+                                                      (curry #'walk-node
+                                                             function builder
+                                                             relation '())
+                                                      targets))
+                                                (t
+                                                 (map 'list
+                                                      (curry #'walk-node
+                                                             function builder
+                                                             relation)
+                                                      args targets))))))))))
              (declare (dynamic-extent #'recurse))
              (apply walk-function #'recurse
                     relation relation-args node kind relations initargs)))))
