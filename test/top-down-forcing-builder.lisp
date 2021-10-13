@@ -1,6 +1,6 @@
 ;;;; top-down-forcing-builder.lisp --- Unit tests for the top-down-forcing-builder.
 ;;;;
-;;;; Copyright (C) 2015, 2018 Jan Moringen
+;;;; Copyright (C) 2015-2021 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -16,8 +16,8 @@
                                            :target builder1)))
          (node2    (make-node builder2 :foo))
          (node1    (make-node builder2 :bar)))
-    ;; Test return value, i.e. produce tree plus additional return
-    ;; values.
+    ;; Test return values, that is produced tree plus additional
+    ;; return values.
     (is (equalp (list #1=(mock-node :bar
                                     :relations `((:child . ((,#2=(mock-node :foo :finished? t) . nil))))
                                     :finished? t)
