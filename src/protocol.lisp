@@ -124,6 +124,9 @@
   ;; This allows consumers to omit defining a method on `finish-node'.
   node)
 
+(defmethod relate ((builder t) (relation cons) (left t) (right t) &key)
+  (relate builder (normalize-relation relation) left right))
+
 (defmethod relate ((builder t) (relation t) (left t) (right null) &key)
   ;; This allows using nil to indicate that no relation should be in
   ;; situations in which the call to `relate' would be inconvenient to
@@ -337,6 +340,9 @@
 
 (defmethod node-relations ((builder t) (node t))
   '())
+
+(defmethod node-relation ((builder t) (relation cons) (node t))
+  (node-relation builder (normalize-relation relation) node))
 
 ;;; Node walking protocol
 ;;;
