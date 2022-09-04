@@ -85,7 +85,9 @@
                                                 (stream clim:extended-output-stream))
   (let* ((builder (builder state))
          (kind    (bp:node-kind builder object)))
-    (format stream "~A" kind)))
+    (clouseau:formatting-place (object 'clouseau:pseudo-place kind
+                                       nil present-object)
+      (present-object stream))))
 
 (defmethod clouseau:inspect-object-using-state ((object t)
                                                 (state  inspected-node)
