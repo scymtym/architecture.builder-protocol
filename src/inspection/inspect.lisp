@@ -1,6 +1,6 @@
 ;;;; inspect.lisp --- Inspector support for trees.
 ;;;;
-;;;; Copyright (C) 2020, 2021 Jan Moringen
+;;;; Copyright (C) 2020, 2021, 2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -24,16 +24,18 @@
     (loop :for (initarg value) :on initargs :by #'cddr
           :do (clim:formatting-row (stream)
                 (clim:formatting-cell (stream)
-                  (clouseau:formatting-place (object 'clouseau:pseudo-place initarg nil present-object)
+                  (clouseau:formatting-place (object 'clouseau:pseudo-place initarg
+                                              nil present-object)
                     (let ((*print-case* :downcase))
                       (present-object stream))))
-                (clouseau:formatting-place (object 'clouseau:pseudo-place value present-place present-object)
+                (clouseau:formatting-place (object 'clouseau:pseudo-place value
+                                            present-place present-object)
                   (clim:formatting-cell (stream)
                     (clouseau:with-style (stream :slot-like)
                       (present-place stream)))
                   (clim:formatting-cell (stream)
-                    (let ((*print-level* 3)
-                          (*print-circle* t)) ; TODO corrent?
+                    (let ((*print-level*  3)
+                          (*print-circle* t))
                       (present-object stream))))))))
 
 ;;; `inspected-node'
@@ -102,8 +104,9 @@
           (loop :with limit = 100
                 :for i :from 0 :below limit
                 :for relation :in relations
-                :for (relation-name cardinality) = (multiple-value-list
-                                                    (bp:normalize-relation relation))
+                :for (relation-name cardinality)
+                   = (multiple-value-list
+                      (bp:normalize-relation relation))
                 :for (rights all-args)
                    = (multiple-value-list
                       (bp:node-relation builder relation object))
@@ -215,9 +218,8 @@
          (declare (ignore relation relation-args relations initargs))
          (when (eq kind query)
            (vector-push-extend node matches)
-           (when limit
-             (when (>= (fill-pointer matches) limit)
-               (return))))
+           (when (and limit (>= (fill-pointer matches) limit))
+             (return)))
          (funcall recurse))
        root))
     ;; Header
@@ -237,6 +239,6 @@
           (map nil (lambda (match)
                      (clim:formatting-cell (stream)
                        (clouseau:formatting-place
-                        (object 'as-node-place match nil present-object)
+                           (object 'as-node-place match nil present-object)
                          (present-object stream))))
                matches))))))
