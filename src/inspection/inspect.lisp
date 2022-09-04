@@ -118,7 +118,7 @@
                                            (t rights))
                           :for args :in (case cardinality
                                           ((1 bp:?) (list all-args))
-                                          (t all-args))
+                                          (t (or all-args (alexandria:circular-list '()))))
                           :do (clim:formatting-row (stream)
                                 (clim:formatting-cell (stream)
                                   (when first?
