@@ -155,21 +155,29 @@
     (make-instance class :place   place
                          :builder (builder place))))
 
-;;; `as-tree'
+;;; `as-tree-mixin'
 ;;;
-;;; A place that allows treating an object as the root of a tree.
+;;; A wrapper that holds a tree root and causes all nodes of that tree
+;;; to be inspected as `inspected-node' object.
 
-(defclass as-tree ()
-  ((%object  :initarg :object
-             :reader  object)
+(defclass as-tree-mixin ()
+  ((%root    :initarg :root
+             :reader  root)
    (%builder :initarg :builder
              :reader  builder)))
+
+;;; `as-tree'
+;;;
+;;; Allows treating an arbitrary object as the root of a tree.
+
+(defclass as-tree (as-tree-mixin)
+  ())
 
 (defun as-tree (object builder)
   (unless (compute-applicable-methods #'bp:node-kind (list builder object))
     (error "~@<~S is not a suitable builder for tree ~S.~@:>"
            builder object))
-  (make-instance 'as-tree :object object :builder builder))
+  (make-instance 'as-tree :root object :builder builder))
 
 (defmethod clouseau:object-state-class ((object as-tree) (place t))
   'inspected-node)
@@ -184,20 +192,16 @@
                                                         (state  inspected-node)
                                                         (style  t)
                                                         (stream clim:extended-output-stream))
-  (clouseau:inspect-object-using-state (object object) state style stream))
+  (clouseau:inspect-object-using-state (root object) state style stream))
 
 ;;; `query'
 
-(defclass query ()
-  ((%root    :initarg  :root ; TODO same as as-tree
-             :reader   root)
-   (%builder :initarg  :builder
-             :reader   builder)
-   (%query   :initarg  :query
-             :accessor query)
-   (%limit   :initarg  :limit
-             :accessor limit
-             :initform nil)))
+(defclass query (as-tree-mixin)
+  ((%query :initarg  :query
+           :accessor query)
+   (%limit :initarg  :limit
+           :accessor limit
+           :initform nil)))
 
 (defun as-query (root builder query)
   (make-instance 'query :root root :builder builder :query query))
