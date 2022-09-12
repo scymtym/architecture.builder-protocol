@@ -293,7 +293,7 @@
     nodes built using the build protocol. It uses the "un-build"
     protocol and can thus handle arbitrary tree representations.
 
-* TODO Dictionary
+* STARTED Dictionary
 
   #+begin_src lisp :results none :exports none :session "doc"
     #.(progn
@@ -333,7 +333,9 @@
    #+begin_example
    finish-node BUILDER KIND NODE
 
-   Use BUILDER to perform finalization for NODE and return NODE.
+   Use BUILDER to perform finalization for NODE.
+
+   Return the modified NODE or an appropriate newly created object.
    #+end_example
 
    #+begin_src lisp :exports results :session "doc"

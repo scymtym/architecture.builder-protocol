@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014-2020 Jan Moringen
+;;;; Copyright (C) 2014-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -31,7 +31,7 @@
 ;;; Build protocol
 ;;;
 ;;; This protocol allows producers such as parsers to construct object
-;;; trees or graphs in an abstract fashion, i.e. independent of the
+;;; trees or graphs in an abstract fashion, that is independent of the
 ;;; concrete objects being constructing.
 ;;;
 ;;; This is achieved through three parts of the protocol:
@@ -62,7 +62,15 @@
 
 (defgeneric finish (builder values)
   (:documentation
-   "Finalize and return VALUES produced by BUILDER.
+   "Finalize and return VALUES produced by BUILDER as multiple values.
+
+    VALUES is a list of objects that should be returned as multiple
+    values and constitute the overall result of an object tree
+    construction with BUILDER. The first element of VALUES which
+    becomes the first return value is the constructed tree
+    itself (which often coincides with the root node). Additional
+    values are optional and their presence and meaning depend on
+    BUILDER.
 
     The default method just returns VALUES."))
 
@@ -70,10 +78,12 @@
   (:documentation
    "Call THUNK with an appropriate dynamic environment for BUILDER.
 
-    For example, could bind special variables around the call.
+    A method on this generic function could, for example, bind special
+    variables around the construction of a result object tree.
 
-    Default methods for `cl:function' and `cl:symbol' just call
-    THUNK."))
+    The existing default methods do not specialize the BUILDER
+    parameter and specialize the THUNK parameter to `cl:function' and
+    `cl:symbol'. These default methods just call THUNK."))
 
 (defgeneric make-node (builder kind &rest initargs ; TODO rename initargs?
                        &key &allow-other-keys)
@@ -86,7 +96,9 @@
 
 (defgeneric finish-node (builder kind node)
   (:documentation
-   "Use BUILDER to perform finalization for NODE and return NODE."))
+   "Use BUILDER to perform finalization for NODE.
+
+    Return the modified NODE or an appropriate newly created object."))
 
 (defgeneric relate (builder relation left right
                     &rest args &key &allow-other-keys)
