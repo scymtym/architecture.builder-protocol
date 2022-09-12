@@ -311,6 +311,58 @@
 ** STARTED Build Protocol
 
    #+begin_src lisp :exports results :session "doc"
+     (doc 'architecture.builder-protocol:prepare 'function)
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   prepare BUILDER
+
+   Prepare BUILDER for result construction, return a builder.
+
+   The default method just returns BUILDER.
+   #+end_example
+
+   #+begin_src lisp :exports results :session "doc"
+     (doc 'architecture.builder-protocol:finish 'function)
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   finish BUILDER VALUES
+
+   Finalize and return VALUES produced by BUILDER as multiple values.
+
+   VALUES is a list of objects that should be returned as multiple
+   values and constitute the overall result of an object tree
+   construction with BUILDER. The first element of VALUES which
+   becomes the first return value is the constructed tree
+   itself (which often coincides with the root node). Additional
+   values are optional and their presence and meaning depend on
+   BUILDER.
+
+   The default method just returns VALUES.
+   #+end_example
+
+   #+begin_src lisp :exports results :session "doc"
+     (doc 'architecture.builder-protocol:wrap 'function)
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   wrap BUILDER THUNK
+
+   Call THUNK with an appropriate dynamic environment for BUILDER.
+
+   A method on this generic function could, for example, bind special
+   variables around the construction of a result object tree.
+
+   The existing default methods do not specialize the BUILDER
+   parameter and specialize the THUNK parameter to `cl:function' and
+   `cl:symbol'. These default methods just call THUNK.
+   #+end_example
+
+   #+begin_src lisp :exports results :session "doc"
      (doc 'architecture.builder-protocol:make-node 'function)
    #+end_src
 
