@@ -1,6 +1,6 @@
 ;;;; list-builder.lisp --- Represents constructed results as nested lists.
 ;;;;
-;;;; Copyright (C) 2014-2021 Jan Moringen
+;;;; Copyright (C) 2014-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -33,7 +33,7 @@
 ;;;;
 ;;;;       (TARGET-NODE . RELATION-ARGUMENTS)
 ;;;;
-;;;;   INITARGS is a plist of arbitrary properties associated to the
+;;;;   INITARGS is a plist of arbitrary properties associated with the
 ;;;;   node in question.
 ;;;;
 ;;;; For example, a node of a hypothetical kind :my-node with a

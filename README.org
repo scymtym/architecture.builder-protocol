@@ -429,15 +429,21 @@
     "left" argument to `relate'. CARDINALITY has to be of type
     `relation-cardinality' and is interpreted as follows:
 
-    ?            RIGHT is a single node or nil.
+    ?            RIGHT is a single node or `nil'. If RIGHT is `nil',
+                 `relate' is not called.
 
     1            RIGHT is a single node.
 
     *            RIGHT is a (possibly empty) sequence of nodes.
 
     (:map . KEY) RIGHT is a (possible empty) sequence of nodes that
-    should be associated to the keys in the sequence that
-    is the value of KEY in the ARGS plist for RIGHT.
+                 should be "zipped" with a sequence of keys (see
+                 below) to form a set of key-values pair and thus a
+                 map. The sequence of keys is the value of the property
+                 whose indicator is KEY in the ARGS plist. The two
+                 sequences must be of the same length. Elements at
+                 corresponding positions will be paired in a
+                 "zipping" operation as described above.
 
     RELATION-NAME does not have to be unique across the elements of
     RELATIONS. This allows multiple "right" nodes to be related to
