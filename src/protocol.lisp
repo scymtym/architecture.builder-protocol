@@ -147,17 +147,23 @@
 
 ;;; Convenience functions
 
-;;; This exists solely for efficiency reasons. Given keyword arguments
-;;; with sequences of values such as
+;;; This function exists solely for efficiency reasons. Given keyword
+;;; arguments with sequences of values such as
 ;;;
 ;;;   (:KEY₁ (VALUE₁₁ VALUE₁₂ …) :KEY₂ (VALUE₂₁ VALUE₂₂ …) …)
 ;;;
-;;; , it constructs a keyword argument list of the form
+;;; , this function constructs a keyword argument list of the form
 ;;;
 ;;;   (:KEY₁ VALUE₁₁ :KEY₂ VALUE₂₁ …)
 ;;;
 ;;; and a function that destructively replaces each value with the
-;;; next value.
+;;; next value. This function returns two values. The first value is
+;;; initially (:KEY₁ nil :KEY₂ nil …) and the second values is the
+;;; destructive function. An initial call to the destructive function
+;;; replaces the `nil's in the first value by VALUE₁₁, VALUE₂₁, ….
+;;; Once all the VALUES of a list have been exhausted by calls to the
+;;; destructive function, a subsequent call to the destructive
+;;; function inserts a `nil' as the VALUE.
 (declaim (ftype (function (list) (values list (or null function) &optional))
                 make-keyword-arguments)
          (inline make-keyword-arguments))
