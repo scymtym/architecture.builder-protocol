@@ -441,7 +441,10 @@
 
                  . The `relate' call for the k-th element of RIGHT will
                  receive the keyword arguments
-                 :KEY₁ VALUEₖ₁ :KEY₂ VALUEₖ₂ ….
+                 :KEY₁ VALUEₖ₁ :KEY₂ VALUEₖ₂ …. If the value list for a
+                 given key would be a repetition of a particular value
+                 VALUE, the circular list #1=(VALUE . #1#) may be used
+                 as a replacement for that value list.
 
     (:map . KEY) RIGHT is a (possible empty) sequence of nodes that
                  should be "zipped" with a sequence of keys (see

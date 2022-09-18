@@ -159,7 +159,19 @@
     ;; argument.
     (signals error
       (add-relations
-       builder (mock-node :foo) `(((:map . :who) :fez ,(mock-node :baz)))))))
+       builder (mock-node :foo) `(((:map . :who) :fez ,(mock-node :baz)))))
+    ;; circular lists as relation arguments values.
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz) :rel1 1   :rel2 3)
+                                              (,(mock-node :fez) :rel1 2   :rel2 3)
+                                              (,(mock-node :who) :rel1 nil :rel2 3)))
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) (let ((circular '#1=(3 . #1#)))
+                                            `((* :fez (,(mock-node :baz)
+                                                       ,(mock-node :fez)
+                                                       ,(mock-node :who))
+                                                 :rel1 (1 2) :rel2 ,circular))))))))
 
 (test make+finish-node+relations.smoke
   "Smoke test for the `make+finish-node+relations[*]' functions."
