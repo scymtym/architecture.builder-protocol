@@ -206,7 +206,14 @@
 
    1            RIGHT is a single node.
 
-   *            RIGHT is a (possibly empty) sequence of nodes.
+   *            RIGHT is a (possibly empty) sequence of nodes. ARGS
+                must be of the form
+
+                  :KEY₁ (VALUE₁₁ VALUE₁₂ …) :KEY₂ (VALUE₂₁ VALUE₂₂ …) …
+
+                . The `relate' call for the k-th element of RIGHT will
+                receive the keyword arguments
+                :KEY₁ VALUEₖ₁ :KEY₂ VALUEₖ₂ ….
 
    (:map . KEY) RIGHT is a (possible empty) sequence of nodes that
                 should be \"zipped\" with a sequence of keys (see
