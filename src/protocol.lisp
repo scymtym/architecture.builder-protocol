@@ -223,7 +223,6 @@
    RELATIONS entries, potentially with different ARGS.
 
    The modified NODE or a new node is returned."
-  (declare (type list relations))
   (labels ((add-relation/one (relation left right args)
              (apply #'relate builder relation left right args))
            (add-relation/sequence (relation left right args)

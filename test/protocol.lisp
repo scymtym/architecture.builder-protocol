@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Unit tests for the protocol of the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014-2021 Jan Moringen
+;;;; Copyright (C) 2014-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -105,17 +105,25 @@
 
 (test add-relations.smoke
   "Smoke test for `add-relations[*]' functions."
-
   (with-implicit-and-explicit-builder
       (builder (make-instance 'mock-builder))
       add-relations
+    ;; Empty sequence of relations.
     (is (equalp (mock-node :foo :finished? nil)
                 (add-relations builder (mock-node :foo) '())))
+    ;; List of relations.
     (is (equalp (mock-node :foo
                            :relations `((:fez (,(mock-node :baz))))
                            :finished? nil)
                 (add-relations
                  builder (mock-node :foo) `((1 :fez ,(mock-node :baz))))))
+    ;; Vector of relations.
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz))))
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) (vector `(1 :fez ,(mock-node :baz))))))
+    ;; ? cardinality with and without "right node.
     (is (equalp (mock-node :foo
                            :relations `((:fez (,(mock-node :baz))))
                            :finished? nil)
@@ -126,11 +134,20 @@
                            :finished? nil)
                 (add-relations
                  builder (mock-node :foo) `((? :fez nil)))))
+    ;; * cardinality with a single "right" node, multiple "right"
+    ;; nodes and relation arguments.
     (is (equalp (mock-node :foo
                            :relations `((:fez (,(mock-node :baz))))
                            :finished? nil)
                 (add-relations
                  builder (mock-node :foo) `((* :fez (,(mock-node :baz)))))))
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz) :rel1 1 :rel2 3)
+                                              (,(mock-node :fez) :rel1 2 :rel2 nil)))
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) `((* :fez (,(mock-node :baz) ,(mock-node :fez))
+                                               :rel1 (1 2) :rel2 (3))))))
     ;; :map cardinality.
     (is (equalp (mock-node :foo
                            :relations `((:fez (,(mock-node :baz) :who 1)))
