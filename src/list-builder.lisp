@@ -86,20 +86,19 @@
 
 (defmethod node-relation ((builder (eql 'list)) (relation t) (node cons))
   (multiple-value-bind (cardinality entries)
-      (loop :for (key entries) :on (second node) :by #'cddr :do
-         (cond
-           ((and (consp key) (consp relation))
-            (when (equal key relation)
-              (return (values (cdr key) entries))))
-           ((consp key)
-            (when (eq (car key) relation)
-              (return (values (cdr key) entries))))
-           ((consp relation)
-            (when (eq key (car relation))
-              (return (values '* entries))))
-           (t
-            (when (eq key relation)
-              (return (values '* entries))))))
+      (loop :for (key entries) :on (second node) :by #'cddr
+            :do (cond ((and (consp key) (consp relation))
+                       (when (equal key relation)
+                         (return (values (cdr key) entries))))
+                      ((consp key)
+                       (when (eq (car key) relation)
+                         (return (values (cdr key) entries))))
+                      ((consp relation)
+                       (when (eq key (car relation))
+                         (return (values '* entries))))
+                      (t
+                       (when (eq key relation)
+                         (return (values '* entries))))))
     (when entries
       (cardinality-ecase cardinality
         ((1 ?)
