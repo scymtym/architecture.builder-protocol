@@ -168,27 +168,30 @@
                 make-keyword-arguments)
          (inline make-keyword-arguments))
 (defun make-keyword-arguments (multi-keyword-arguments)
-  (let ((args             '())
-        (previous-cell    nil)
-        (previous-updater nil))
-    (doplist (key values multi-keyword-arguments)
-      (let ((cell (list key nil)))
-        (if previous-cell
-            (setf (cddr previous-cell) cell)
-            (setf args            cell))
-        (setf previous-cell cell
-              previous-updater
-              (let ((previous-updater previous-updater)
-                    (values           values))
-                (if previous-updater
-                    (locally
-                        (declare (type function previous-updater))
-                      (lambda ()
-                        (setf (cadr cell) (pop values))
-                        (funcall previous-updater)))
+  (loop :for (keyword values) :on multi-keyword-arguments :by #'cddr
+        ;; The following two clauses construct the initial list
+        ;; (:KEY₁ nil :KEY₂ nil …) to be returned as the first value.
+        :collect keyword :into result
+        :collect nil     :into result
+        ;; This clause constructs a list
+        ;; ((VALUE₁₁ VALUE₁₂ …) (VALUE₂₁ VALUE₂₂ …) …)
+        ;; to be traversed by the destructive function.
+        :collect values :into values-list
+        :finally (return
+                   (values
+                    result
                     (lambda ()
-                      (setf (cadr cell) (pop values))))))))
-    (values args previous-updater)))
+                      (loop ;; Loop over subsequent tails of the
+                            ;; returned list so that the CAR of the
+                            ;; first CONS cell of the tail should be
+                            ;; updated.
+                            :for rest :on (cdr result) :by #'cddr
+                            ;; And loop over subsequent tails of the
+                            ;; values list, so that the car of the
+                            ;; first cons cell of the tail should be
+                            ;; popped.
+                            :for values :on values-list
+                            :do (setf (car rest) (pop (car values)))))))))
 
 (defun add-relations (builder node relations)
   "Use BUILDER to add relations according to RELATIONS to NODE.
@@ -236,7 +239,7 @@
              (multiple-value-bind (keyword-args next)
                  (make-keyword-arguments args)
                (reduce (lambda (left right)
-                         (when next (funcall next))
+                         (funcall next)
                          (apply #'relate builder relation left right
                                 keyword-args))
                        right :initial-value left)))
