@@ -23,8 +23,10 @@ script:
       -s architecture.builder-protocol.xpath/test
       -s architecture.builder-protocol.json/test
       -s architecture.builder-protocol.universal-builder/test
+      -s :architecture.builder-protocol.print-tree/test
       '(or (and (architecture.builder-protocol.test:run-tests)
                 (architecture.builder-protocol.xpath.test:run-tests)
                 (architecture.builder-protocol.json.test:run-tests)
-                (architecture.builder-protocol.universal-builder.test:run-tests))
+                (architecture.builder-protocol.universal-builder.test:run-tests)
+                (architecture.builder-protocol.print-tree.test:run-tests))
            (uiop:quit -1))'
