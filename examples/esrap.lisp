@@ -21,16 +21,15 @@
 (defrule type-reference
     identifier
   (:lambda (name &bounds start end)
-    (make+finish-node *builder* :type-reference
-                      :name   name
-                      :bounds (cons start end))))
+    (make+finish-node *builder* :type-reference :name   name
+                                                :bounds (cons start end))))
 
 (defrule value
     (+ (digit-char-p character))
+  (:text t)
   (:lambda (digits &bounds start end)
-    (make+finish-node *builder* :value
-                      :value  (parse-integer (text digits))
-                      :bounds (cons start end))))
+    (make+finish-node *builder* :value :value  (parse-integer digits)
+                                       :bounds (cons start end))))
 
 (defrule variable-declaration
     (and type-reference " " identifier (? (and " = " value)) (? " "))
