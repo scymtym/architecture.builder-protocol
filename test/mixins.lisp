@@ -1,6 +1,6 @@
 ;;;; mixins.lisp --- Unit tests for builder mixins.
 ;;;;
-;;;; Copyright (C) 2016, 2018 Jan Moringen
+;;;; Copyright (C) 2016-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -10,7 +10,6 @@
 
 (test forwarding-mixin.smoke
   "Smoke test for the `forwarding-mixin' class."
-
   (let* ((target     'list)
          (delegating (make-instance 'forwarding-mixin :target target)))
     (is (equalp (multiple-value-list
@@ -24,7 +23,6 @@
 
 (test delaying-mixin.smoke
   "Smoke test for the `delaying-mixin' class."
-
   (let* ((builder   (make-instance 'delaying-mixin))
          (node2     (finish-node builder :foo (make-node builder :foo)))
          (node1     (finish-node builder :bar (make-node builder :bar)))
@@ -34,10 +32,9 @@
     (push relation (delayed-node-relations expected1))
     ;; Test return value, i.e. produce tree plus additional return
     ;; values.
-    (is (equalp (list expected1 2)
-                (multiple-value-list
-                 (finish builder
-                         (wrap builder
-                               (lambda (builder)
-                                 (values (relate builder :child node1 node2)
-                                         2)))))))))
+    (is (equalp (values expected1 2)
+                (finish builder
+                        (wrap builder
+                              (lambda (builder)
+                                (values (relate builder :child node1 node2)
+                                        2))))))))
