@@ -1,6 +1,6 @@
 ;;;; universal-builder.lisp --- (Un)builder for arbitrary standard-objects.
 ;;;;
-;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
+;;;; Copyright (C) 2015-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -50,15 +50,15 @@
 
 (defmethod node-initargs ((builder universal-builder) (node standard-object))
   (loop :for slot :in (class-initarg-and-relation-slots (class-of node))
-     :for (name initarg) = (slot-information slot)
-     :when (slot-boundp node name)
-     :collect initarg :and :collect (slot-value node name)))
+        :for (name initarg) = (slot-information slot)
+        :when (slot-boundp node name)
+          :collect initarg :and :collect (slot-value node name)))
 
 (defmethod node-relations ((builder universal-builder) (node standard-object))
   (loop :for slot :in (nth-value 1 (class-initarg-and-relation-slots
                                     (class-of node)))
-     :for (nil initarg nil cardinality) = (slot-information slot)
-     :collect (cons initarg cardinality)))
+        :for (nil initarg nil cardinality) = (slot-information slot)
+        :collect (cons initarg cardinality)))
 
 (defmethod node-relation ((builder  universal-builder)
                           (relation symbol)
@@ -76,10 +76,10 @@
                value)
               (:map
                (loop :for key :being :the :hash-key :in value
-                  :using (:hash-value value)
-                  :collect (list :key key) :into keys
-                  :collect value :into values
-                  :finally (return (values values keys)))))))))))
+                     :using (:hash-value value)
+                     :collect (list :key key) :into keys
+                     :collect value :into values
+                     :finally (return (values values keys)))))))))))
 
 ;;; Utilities
 
