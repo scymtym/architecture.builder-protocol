@@ -1,6 +1,6 @@
 ;;;; util.lisp --- Utilities provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -54,18 +54,37 @@
                    (length remaining) remaining)))))))
 
 (defmacro cardinality-case (cardinality &body clauses)
-  "Execute the clause in CLAUSES corresponding to the value of
+  "Execute the clause in CLAUSES which corresponds to the value of
    CARDINALITY.
+
+   CARDINALITY is evaluated and the resulting value is used to select
+   a clause.
 
    Elements of CLAUSES are of the form
 
-     (CARDINALITY-DESIGNATOR &body BODY)
+     (CARDINALITY-DESIGNATOR-OR-LIST &body BODY)
 
-   where CARDINALITY-DESIGNATOR is one of the cardinality designators
-   1 ? *, :map or a list of some of these. Alternatively,
-   CARDINALITY-DESIGNATOR can be (:map KEY-VAR) in which case KEY-VAR
-   will be bound to KEY in a (:map KEY) cardinality designator and
-   accessible in the corresponding BODY."
+   where CARDINALITY-DESIGNATOR-OR-LIST is either
+
+   1. One of the cardinality designators 1, ?, *, `:map'
+
+      A clause of this form matches if CARDINALITY evaluates to the
+      specified cardinality designator or if CARDINALITY evaluates
+      to (:map SOME-KEY) and CARDINALITY-DESIGNATOR-OR-LIST is `:map'.
+
+   2. A list of some of the cardinality designators mentioned above
+
+      A clause of this form matches if CARDINALITY evaluates to any of
+      the cardinality designators mentioned in
+      CARDINALITY-DESIGNATOR-OR-LIST or if CARDINALITY evaluates
+      to (:map SOME-KEY) and `:map' is an element of
+      CARDINALITY-DESIGNATOR-OR-LIST.
+
+   3. An expression of the form (:map . KEY-VAR)
+
+      A clause of this form matches if the value of CARDINALITY is of
+      the form (:map . SOME-KEY). During the evaluation of the BODY of
+      the clause, KEY-VAR will be bound to SOME-KEY."
   (expand-cardinality-case cardinality clauses nil))
 
 (defmacro cardinality-ecase (cardinality &body clauses)
