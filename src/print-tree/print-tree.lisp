@@ -88,7 +88,7 @@
                           (list (cons (list relation) targets)))
                          (*
                           (map 'list #'cons (circular-list (list relation)) targets))
-                         ((:map key-key)
+                         ((:map . key-key)
                           (map 'list (lambda (target args)
                                        (let ((key (getf args key-key)))
                                          (cons (cons relation key) target)))

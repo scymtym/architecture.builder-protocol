@@ -257,7 +257,7 @@
                   (add-relation/one relation left right args))
                  (*
                   (add-relation/sequence relation left right args))
-                 ((:map key)
+                 ((:map . key)
                   (when (eq (getf args key :missing) :missing)
                     (error "~@<~S key ~S is missing in relation ~
                             arguments ~S.~@:>"

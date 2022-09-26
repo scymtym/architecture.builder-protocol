@@ -1,6 +1,6 @@
 ;;;; json.lisp --- JSON export of builder-based trees.
 ;;;;
-;;;; Copyright (C) 2015, 2016 Jan Moringen
+;;;; Copyright (C) 2015-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -113,7 +113,7 @@
                            (json::with-array ()
                              (encode-relation recurse relation-and-cardinality
                                               #'encode-as-array-member))))
-                        ((:map key-key)
+                        ((:map . key-key)
                          (json:as-object-member (relation-key)
                            (json:with-object ()
                              (encode-relation recurse relation-and-cardinality

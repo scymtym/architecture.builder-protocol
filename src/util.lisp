@@ -20,7 +20,7 @@
 ;;; `cardinality-[e]case'
 
 (deftype %map-pattern ()
-  '(cons (eql :map) (cons symbol null)))
+  '(cons (eql :map) symbol))
 
 (defun expand-cardinality-case (cardinality clauses exhaustive)
   (let ((remaining '(? 1 * :map)))
@@ -36,7 +36,7 @@
                (make-bindings (spec)
                  (typecase spec
                    (%map-pattern
-                    `((,(second spec) (cdr ,cardinality))))))
+                    `((,(cdr spec) (cdr ,cardinality))))))
                (make-clause (clause)
                  (destructuring-bind (cardinalities &body body) clause
                    (let ((cardinalities (if (typep cardinalities '%map-pattern)
