@@ -1,6 +1,6 @@
 ;;;; util.lisp --- Utilities used in the universal-builder module.
 ;;;;
-;;;; Copyright (C) 2015, 2016, 2017 Jan Moringen
+;;;; Copyright (C) 2015-2022 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -51,9 +51,9 @@
 
 (defun class-initarg-and-relation-slots (class)
   (loop :for slot :in (c2mop:class-slots (ensure-finalized class))
-     :when (interesting-slot? slot)
-     :if (relation-slot? slot)
-     :collect slot :into relation-slots
-     :else
-     :collect slot :into scalar-slots
-     :finally (return (values scalar-slots relation-slots))))
+        :when (interesting-slot? slot)
+          :if (relation-slot? slot)
+            :collect slot :into relation-slots
+          :else
+            :collect slot :into scalar-slots
+        :finally (return (values scalar-slots relation-slots))))
