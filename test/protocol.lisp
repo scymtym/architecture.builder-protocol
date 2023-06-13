@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Unit tests for the protocol of the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014-2022 Jan Moringen
+;;;; Copyright (C) 2014-2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -171,7 +171,18 @@
                                             `((* :fez (,(mock-node :baz)
                                                        ,(mock-node :fez)
                                                        ,(mock-node :who))
-                                                 :rel1 (1 2) :rel2 ,circular))))))))
+                                                 :rel1 (1 2) :rel2 ,circular))))))
+    ;; non-list relation arguments are repeated for all right nodes.
+    (is (equalp (mock-node :foo
+                           :relations `((:fez (,(mock-node :baz) :rel1 :a :rel2 1)
+                                              (,(mock-node :fez) :rel1 :a :rel2 2)
+                                              (,(mock-node :who) :rel1 :a :rel2 3)))
+                           :finished? nil)
+                (add-relations
+                 builder (mock-node :foo) `((* :fez (,(mock-node :baz)
+                                                     ,(mock-node :fez)
+                                                     ,(mock-node :who))
+                                               :rel1 :a :rel2 (1 2 3))))))))
 
 (test make+finish-node+relations.smoke
   "Smoke test for the `make+finish-node+relations[*]' functions."

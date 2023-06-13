@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2014-2022 Jan Moringen
+;;;; Copyright (C) 2014-2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -174,8 +174,10 @@
         :collect keyword :into result
         :collect nil     :into result
         ;; This clause constructs a list
-        ;; ((VALUE₁₁ VALUE₁₂ …) (VALUE₂₁ VALUE₂₂ …) …)
-        ;; to be traversed by the destructive function.
+        ;; ((VALUE₁₁ VALUE₁₂ …) (VALUE₂₁ VALUE₂₂ …) VALUE₃ …)
+        ;; to be traversed by the destructive function. VALUE₃ is an
+        ;; example of an atom which should be associated uniformly
+        ;; with all right nodes.
         :collect values :into values-list
         :finally (return
                    (values
@@ -191,7 +193,13 @@
                             ;; first cons cell of the tail should be
                             ;; popped.
                             :for values :on values-list
-                            :do (setf (car rest) (pop (car values)))))))))
+                            ;; If (car values) is not a list,
+                            ;; associate that same atom with all right
+                            ;; nodes instead of iterating through
+                            ;; values.
+                            :do (setf (car rest) (if (listp (car values))
+                                                     (pop (car values))
+                                                     (car values)))))))))
 
 (defun add-relations (builder node relations)
   "Use BUILDER to add relations according to RELATIONS to NODE.
