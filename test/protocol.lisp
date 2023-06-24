@@ -248,11 +248,13 @@
 
 (test node-relation.smoke
   "Smoke test for the `node-relation[*]' functions."
-
   (with-implicit-and-explicit-builder (builder (make-instance 'mock-builder))
       node-relation
     (let* ((related (mock-node :baz))
            (node    (mock-node :foo :relations `(((:bar . *) . ((,related)))))))
+      ;; Invalid calls
+      (signals type-error (node-relation builder '(:bar . !) node))
+      ;; Valid calls
       (is (equal `((,related) (()))
                  (multiple-value-list
                   (node-relation builder '(:bar . *) node))))

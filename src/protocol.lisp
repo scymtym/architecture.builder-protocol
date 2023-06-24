@@ -369,9 +369,29 @@
 (defgeneric node-relation (builder relation node)
   (:argument-precedence-order node relation builder)
   (:documentation
-   "Return two values: 1) a sequence of nodes related to NODE via
-    RELATION w.r.t. BUILDER 2) `nil' or a same-length sequence of
-    arguments of the relations.
+   "Return two values: 1) a single node or a sequence of nodes related to
+    NODE via RELATION w.r.t. BUILDER 2) `nil' or a same-length
+    sequence of arguments of the relations.
+
+    RELATION must be of one of the forms
+
+      RELATION-NAME
+      (RELATION-NAME . CARDINALITY)
+
+    where RELATION-NAME names the relation and CARDINALITY is of type
+    `relation-cardinality'. The second form is accepted for
+    convenience so that, for example, relation descriptions returned
+    by `node-relations' can be used as arguments to this
+    function. CARDINALITY is not processed by this function except
+    that a `type-error' may be signaled if CARDINALITY is not of type
+    `relation-cardinality'.
+
+    If the cardinality of RELATION is 1 or `?', the first return value
+    is a single node. Otherwise the first return value is a sequence
+    of nodes. Again, note that the cardinality of RELATION here refers
+    to the actual cardinality as known by BUILDER, not information
+    encoded in RELATION by the caller supplying RELATION
+    as (RELATION-NAME . CARDINALITY).
 
     Each element in the sequence of relation arguments is EQUAL to the
     list of arguments passed to the RELATE call that, using BUILDER,
@@ -386,7 +406,9 @@
   '())
 
 (defmethod node-relation ((builder t) (relation cons) (node t))
-  (node-relation builder (normalize-relation relation) node))
+  (multiple-value-bind (relation-name cardinality) (normalize-relation relation)
+    (check-type cardinality relation-cardinality)
+    (node-relation builder relation-name node)))
 
 ;;; Node walking protocol
 ;;;
