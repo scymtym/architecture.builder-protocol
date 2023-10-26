@@ -245,46 +245,72 @@
      :BOUNDS (0 . 5))
     #+END_SRC
 
-**** Printing =list= Builder Results
-     This may be slightly off-topic, but a nice hack for printing
-     /arbitrary/ results produced by the =list= builder can be done
-     using the [[http://github.com/scymtym/utilities.print-tree][=utilities.print-tree= system]]:
-     #+begin_src lisp :exports code :session "tutorial"
-       (defun print-tree (tree &optional (stream *standard-output*))
-         (utilities.print-tree:print-tree
-          stream tree
-          (utilities.print-tree:make-node-printer
-           (lambda (stream depth node)
-             (declare (ignore depth))
-             (destructuring-bind (kind relations &rest slots) node
-               (declare (ignore relations))
-               (format stream "~A~@[ @~A~]"
-                       kind (getf slots :bounds))
-               (alexandria:remove-from-plist slots :bounds)))
-           (lambda (stream depth node)
-             (declare (ignore depth))
-             (destructuring-bind (kind relations &rest slots) node
-               (declare (ignore kind relations))
-               (format stream "~{~A: ~A~^~@:_~}"
-                       (alexandria:remove-from-plist slots :bounds))))
-           (lambda (node)
-             (loop :for (relation nodes) :on (second node) :by #'cddr
-                :appending (mapcar #'car nodes))))))
-     #+end_src
-     Putting these pieces together, we can achieve the following:
-     #+begin_src lisp :results output :exports both :session "tutorial"
-       (print-tree (parse (make-string-input-stream "++123") 'list))
-     #+end_src
+*** Printing Result Trees
 
-     #+RESULTS:
-     : OPERATOR @(0 . 5)
-     : ├─OPERATOR @(1 . 4)
-     : │ ├─LITERAL @(2 . 3)
-     : │ │   VALUE: 1
-     : │ └─LITERAL @(3 . 4)
-     : │     VALUE: 2
-     : └─LITERAL @(4 . 5)
-     :     VALUE: 3
+    This may be slightly off-topic, but a nice hack for printing
+    /arbitrary/ results produced by the =list= builder can be done
+    using the [[http://github.com/scymtym/utilities.print-tree][=utilities.print-tree= system]]:
+
+    #+begin_src lisp :exports code :session "tutorial"
+      (defun my-print-tree (tree &optional (stream *standard-output*))
+        (utilities.print-tree:print-tree
+         stream tree
+         (utilities.print-tree:make-node-printer
+          (lambda (stream depth node)
+            (declare (ignore depth))
+            (destructuring-bind (kind relations &rest slots) node
+              (declare (ignore relations))
+              (format stream "~A~@[ @~A~]"
+                      kind (getf slots :bounds))
+              (alexandria:remove-from-plist slots :bounds)))
+          (lambda (stream depth node)
+            (declare (ignore depth))
+            (destructuring-bind (kind relations &rest slots) node
+              (declare (ignore kind relations))
+              (format stream "~{~A: ~A~^~@:_~}"
+                      (alexandria:remove-from-plist slots :bounds))))
+          (lambda (node)
+            (loop :for (relation nodes) :on (second node) :by #'cddr
+                  :appending (mapcar #'car nodes))))))
+    #+end_src
+
+    Putting these pieces together, we can achieve the following:
+    #+begin_src lisp :results output :exports both :session "tutorial"
+      (my-print-tree (parse (make-string-input-stream "++123") 'list))
+    #+end_src
+
+    #+RESULTS:
+    : OPERATOR @(0 . 5)
+    : ├─OPERATOR @(1 . 4)
+    : │ ├─LITERAL @(2 . 3)
+    : │ │   VALUE: 1
+    : │ └─LITERAL @(3 . 4)
+    : │     VALUE: 2
+    : └─LITERAL @(4 . 5)
+    :     VALUE: 3
+
+    The system =architecture.builder-protocol.print-tree= implements a
+    more complete version (not restricted to the =list= builder, among
+    other things) of this idea:
+
+    #+BEGIN_SRC lisp :results output :exports both :session "tutorial"
+      (defun print-tree (tree)
+        (fresh-line)
+        (architecture.builder-protocol.print-tree:print-tree
+         'list tree *standard-output*))
+
+      (print-tree (parse (make-string-input-stream "++123") 'list))
+    #+END_SRC
+
+    #+RESULTS:
+    : OPERATOR @(0 . 5)
+    : ├─OPERATOR-OPERAND: OPERATOR @(1 . 4)
+    : │ ├─OPERATOR-OPERAND: LITERAL @(2 . 3)
+    : │ │   VALUE: 1
+    : │ └─OPERATOR-OPERAND: LITERAL @(3 . 4)
+    : │     VALUE: 2
+    : └─OPERATOR-OPERAND: LITERAL @(4 . 5)
+    :     VALUE: 3
 
 ** TODO "Un-build" Protocol
 
