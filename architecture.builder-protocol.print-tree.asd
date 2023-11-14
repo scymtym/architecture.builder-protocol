@@ -1,6 +1,6 @@
 ;;;; architecture.builder-protocol-print-tree.asd --- System definition of architecture.builder-protocol-print-tree system.
 ;;;;
-;;;; Copyright (C) 2015-2021 Jan Moringen
+;;;; Copyright (C) 2015-2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -16,7 +16,7 @@
                 "utilities.print-tree")
 
   :components  ((:module     "print-tree"
-                 :pathname   "src/print-tree"
+                 :pathname   "code/print-tree"
                  :serial     t
                  :components ((:file       "package")
                               (:file       "print-tree"))))

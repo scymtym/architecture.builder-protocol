@@ -1,6 +1,6 @@
 ;;;; architecture.builder-protocol.json.asd --- System definition of architecture.builder-protocol.json system.
 ;;;;
-;;;; Copyright (C) 2015-2021 Jan Moringen
+;;;; Copyright (C) 2015-2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -16,7 +16,7 @@
                 "cl-json")
 
   :components  ((:module     "json"
-                 :pathname   "src/json"
+                 :pathname   "code/json"
                  :serial     t
                  :components ((:file       "package")
                               (:file       "json"))))

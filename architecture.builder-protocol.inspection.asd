@@ -1,6 +1,6 @@
 ;;;; architecture.builder-protocol.inspection.asd --- architecture.builder-protocol.inspection system.
 ;;;;
-;;;; Copyright (C) 2021 Jan Moringen
+;;;; Copyright (C) 2021, 2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -15,6 +15,6 @@
                 (:version "architecture.builder-protocol" (:read-file-form "version.sexp")))
 
   :components  ((:module     "inspection"
-                 :pathname   "src/inspection"
+                 :pathname   "code/inspection"
                  :components ((:file       "package")
                               (:file       "inspect")))))

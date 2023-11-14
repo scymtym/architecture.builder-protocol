@@ -1,6 +1,6 @@
 ;;;; architecture.builder-protocol.universal-builder.asd --- architecture.builder-protocol.universal-builder system.
 ;;;;
-;;;; Copyright (C) 2015-2021 Jan Moringen
+;;;; Copyright (C) 2015-2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -16,7 +16,7 @@
 
                 (:version "architecture.builder-protocol" (:read-file-form "version.sexp")))
   :components  ((:module     "universal-builder"
-                 :pathname   "src/universal-builder"
+                 :pathname   "code/universal-builder"
                  :components ((:file       "package")
                               (:file       "util")
                               (:file       "mixins")

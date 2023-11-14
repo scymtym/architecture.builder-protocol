@@ -1,6 +1,6 @@
 ;;;; architecture.builder-protocol.asd --- System definition of architecture.builder-protocol system.
 ;;;;
-;;;; Copyright (C) 2012-2021 Jan Moringen
+;;;; Copyright (C) 2012-2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -13,7 +13,7 @@
   :version     (:read-file-form "version.sexp")
   :depends-on  ("alexandria")
 
-  :components  ((:module     "src"
+  :components  ((:module     "code"
                  :serial     t
                  :components ((:file       "package")
 

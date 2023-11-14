@@ -1,6 +1,6 @@
 ;;;; architecture.builder-protocol-xpath.asd --- System definition of architecture.builder-protocol-xpath system.
 ;;;;
-;;;; Copyright (C) 2015-2021 Jan Moringen
+;;;; Copyright (C) 2015-2023 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -16,7 +16,7 @@
                 "xpath")
 
   :components  ((:module     "xpath"
-                 :pathname   "src/xpath"
+                 :pathname   "code/xpath"
                  :serial     t
                  :components ((:file       "package")
 
